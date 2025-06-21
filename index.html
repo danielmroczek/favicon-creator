@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SVG Favicon Generator</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0idXJsKCNncmFkaWVudCkiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZXNtb2tlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtMyA5IDktNyA5IDd2MTFhMiAyIDAgMCAxLTIgMkg1YTIgMiAwIDAgMS0yLTJaIi8+CjxwYXRoIGQ9Im05IDIyVjEyaDZWMjIiLz4KPC9zdmc+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50IiB4MT0iMTAwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzNiODJmNiIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjVjZjYiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K" type="image/svg+xml">
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0idXJsKCNncmFkaWVudCkiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZXNtb2tlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtMyA5IDktNyA5IDd2MTFhMiAyIDAgMCAxLTIgMkg1YTIgMiAwIDAgMS0yLTJaIi8+CjxwYXRoIGQ9Im05IDIyVjEyaDZWMjIiLz4KPC9zdmc+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50IiB4MT0iMTAwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzNiODJmNiIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjVjZjYiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K" type="image/svg+xml" id="dynamic-favicon">
     <style>
         :root {
             --preview-size: 200px;
@@ -341,6 +341,12 @@
                         <input type="color" id="icon-color" value="#f5f5f5">
                         <label for="icon-color">Icon Color</label>
                     </div>
+                    
+                    <div class="range-group" style="margin-top: 1rem;">
+                        <label for="stroke-width">Stroke Width</label>
+                        <input type="range" id="stroke-width" min="0.5" max="4" step="0.5" value="2">
+                        <span class="range-value" id="stroke-value">2</span>
+                    </div>
                 </div>
                 
                 <div class="control-group">
@@ -379,7 +385,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/svgo@3.0.2/dist/svgo.browser.js"></script>
     <script>
-        // Icon data from Lucide React
+        // Expanded icon data from Lucide React - more comprehensive set
         const popularIcons = [
             { name: 'home', path: 'm3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z|m9 22V12h6V22' },
             { name: 'heart', path: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z' },
@@ -414,7 +420,28 @@
             { name: 'clock', path: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z|M12 6v6l4 2' },
             { name: 'map-pin', path: 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z|M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z' },
             { name: 'shopping-cart', path: 'm9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z|m20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z|M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6' },
-            { name: 'gift', path: 'M20 12v10H4V12|M2 7h20v5H2z|m12 15V7|M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7s1-5 4.5-5a2.5 2.5 0 0 1 0 5H12Z' }
+            { name: 'gift', path: 'M20 12v10H4V12|M2 7h20v5H2z|m12 15V7|M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7s1-5 4.5-5a2.5 2.5 0 0 1 0 5H12Z' },
+            { name: 'code', path: 'm16 18 6-6-6-6|m-8 6-6-6 6-6' },
+            { name: 'database', path: 'M4 6c0 1.657 3.582 3 8 3s8-1.343 8-3-3.582-3-8-3-8 1.343-8 3Z|M4 6v6c0 1.657 3.582 3 8 3s8-1.343 8-3V6|M4 12v6c0 1.657 3.582 3 8 3s8-1.343 8-3v-6' },
+            { name: 'wifi', path: 'm1 9 2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.07 2.93 1 9Z|m5 4 2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.86 9.14 6 13Z|m4 4 2 2 2-2c-1.10-1.10-2.90-1.10-4 0Z' },
+            { name: 'cpu', path: 'M4 16V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z|M9 9h6v6H9V9Z|M9 2v4|M15 2v4|M9 18v4|M15 18v4|M20 9h2|M20 15h2|M2 9h2|M2 15h2' },
+            { name: 'server', path: 'M6 10H4a2 2 0 0 1-2-2V4c0-1.1.9-2 2-2h16a2 2 0 0 0 2 2v4a2 2 0 0 0-2 2h-2|M6 10l0 4H4a2 2 0 0 0-2 2v4c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-2l0-4|M6 6h.01|M6 18h.01' },
+            { name: 'folder', path: 'M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z' },
+            { name: 'file', path: 'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z|M14 2v4a2 2 0 0 0 2 2h4' },
+            { name: 'layers', path: 'M12 2 2 7l10 5 10-5-10-5Z|m-10 10 10 5 10-5|m-10 4 10 5 10-5' },
+            { name: 'trending-up', path: 'm22 7-8.5 8.5-5-5L2 17|M16 7h6v6' },
+            { name: 'trending-down', path: 'm22 17-8.5-8.5-5 5L2 7|M16 17h6v-6' },
+            { name: 'activity', path: 'M22 12h-2.48a2 2 0 0 0-1.93 2.52l-1.35 6.75a2 2 0 0 1-3.88 0L9.14 9.52a2 2 0 0 0-3.88 0l-.87 4.36A2 2 0 0 1 2.48 16H2' },
+            { name: 'zap', path: 'M4 14a1 1 0 0 1-.78-1.63l5.54-6.93A1 1 0 0 1 9.54 5H20a1 1 0 0 1 .78 1.63l-5.54 6.93A1 1 0 0 1 14.46 14H4Z|M12 5v14' },
+            { name: 'palette', path: 'M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10c1.38 0 2.5-.56 2.5-1.25 0-.34-.13-.65-.35-.9-.22-.24-.35-.55-.35-.9 0-.69.56-1.25 1.25-1.25H16c3.31 0 6-2.69 6-6 0-5.51-4.49-10-10-10Z|M7 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z|M12 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z|M17 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z|M9 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z' },
+            { name: 'sun', path: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z|m12 0h.01|m12 0h.01|M6.34 17.66l-.7.7|M6.34 6.34l-.7-.7|M17.66 6.34l.7-.7|M17.66 17.66l.7.7|M12 1v.01|M12 23v.01|M20.49 9l-1.04-.55|M5.55 14.45l-.96-.55|M8 12H1|M23 12h-7|M8.77 4.07l-.92-.37|M17.15 19.93l-.92-.37|M15.23 4.07l.92-.37|M6.85 19.93l.92-.37' },
+            { name: 'moon', path: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z' },
+            { name: 'cloud', path: 'M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z' },
+            { name: 'umbrella', path: 'M23 12a11.05 11.05 0 0 0-22 0zm-5 7a3 3 0 0 1-6 0v-7' },
+            { name: 'coffee', path: 'M10 2h4|M12 17v3|M5 8h14l-1 8H6L5 8Z|M6 2l1.5 4L9 2|M15 2l1.5 4L18 2' },
+            { name: 'car', path: 'M8 21v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2|M7 21h2m6 0h2m-6-4H9.5a2.5 2.5 0 0 1 0-5h5a2.5 2.5 0 0 1 0 5H13m-6-7h6l2-6h-2l-2 6H7z' },
+            { name: 'plane', path: 'M17.8 19.2 16 11l3.5-3.5C21 6 21 4 19 4s-2 2-3.5 3.5L11 16l-8.2 1.8c-.5.1-.9.6-.8 1.1.1.5.6.9 1.1.8L11 17.8 17.8 19.2Z' },
+            { name: 'gamepad-2', path: 'M6 11h4m-2-2v4|M15 12h.01|M18 15h.01|M17 2H7a5 5 0 0 0-5 5v6a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5Z' }
         ];
 
         let currentIcon = popularIcons[0];
@@ -427,6 +454,7 @@
         const gradientAngleInput = document.getElementById('gradient-angle');
         const borderRadiusInput = document.getElementById('border-radius');
         const iconColorInput = document.getElementById('icon-color');
+        const strokeWidthInput = document.getElementById('stroke-width');
         const iconXInput = document.getElementById('icon-x');
         const iconYInput = document.getElementById('icon-y');
         const iconSizeInput = document.getElementById('icon-size');
@@ -443,6 +471,17 @@
         const xValue = document.getElementById('x-value');
         const yValue = document.getElementById('y-value');
         const sizeValue = document.getElementById('size-value');
+        const strokeValue = document.getElementById('stroke-value');
+
+        // Update favicon dynamically
+        function updateFavicon() {
+            const svgString = previewSvg.outerHTML;
+            const base64 = btoa(unescape(encodeURIComponent(svgString)));
+            const dataUrl = `data:image/svg+xml;base64,${base64}`;
+            
+            const favicon = document.getElementById('dynamic-favicon');
+            favicon.href = dataUrl;
+        }
 
         // Center icon functionality
         centerIconBtn.addEventListener('click', () => {
@@ -520,6 +559,7 @@
             const color1 = color1Input.value;
             const color2 = color2Input.value;
             const iconColor = iconColorInput.value;
+            const strokeWidth = parseFloat(strokeWidthInput.value);
             const iconX = parseInt(iconXInput.value);
             const iconY = parseInt(iconYInput.value);
             const iconSize = parseInt(iconSizeInput.value);
@@ -536,7 +576,7 @@
                 iconContent = customIconSvg;
             } else {
                 iconContent = `
-                    <svg x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2">
+                    <svg x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="${strokeWidth}">
                         ${currentIcon.path.split('|').map(path => `<path d="${path}"/>`).join('')}
                     </svg>
                 `;
@@ -552,6 +592,8 @@
                 <rect width="32" height="32" rx="${radius}" fill="url(#gradient)"/>
                 ${iconContent}
             `;
+            
+            updateFavicon();
         }
 
         // Update value displays
@@ -561,11 +603,12 @@
             xValue.textContent = iconXInput.value;
             yValue.textContent = iconYInput.value;
             sizeValue.textContent = iconSizeInput.value;
+            strokeValue.textContent = strokeWidthInput.value;
         }
 
         // Event listeners
         [color1Input, color2Input, gradientAngleInput, borderRadiusInput, 
-         iconColorInput, iconXInput, iconYInput, iconSizeInput].forEach(input => {
+         iconColorInput, strokeWidthInput, iconXInput, iconYInput, iconSizeInput].forEach(input => {
             input.addEventListener('input', () => {
                 updatePreview();
                 updateValueDisplays();
