@@ -1,24 +1,635 @@
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>svg-sparkle-icon-maker</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Favicon Generator</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0idXJsKCNncmFkaWVudCkiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZXNtb2tlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtMyA5IDktNyA5IDd2MTFhMiAyIDAgMCAxLTIgMkg1YTIgMiAwIDAgMS0yLTJaIi8+CjxwYXRoIGQ9Im05IDIyVjEyaDZWMjIiLz4KPC9zdmc+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50IiB4MT0iMTAwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzNiODJmNiIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjVjZjYiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K" type="image/svg+xml">
+    <style>
+        :root {
+            --preview-size: 200px;
+        }
+        
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .header h1 {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+        
+        .preview-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: sticky;
+            top: 2rem;
+        }
+        
+        .preview-container {
+            width: var(--preview-size);
+            height: var(--preview-size);
+            border: 2px solid var(--pico-border-color);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--pico-card-background-color);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .preview-container::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 1rem;
+            z-index: -1;
+        }
+        
+        #preview-svg {
+            width: 80%;
+            height: 80%;
+            border-radius: 0.5rem;
+        }
+        
+        .controls-section {
+            background: var(--pico-card-background-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            border: 1px solid var(--pico-border-color);
+        }
+        
+        .control-group {
+            margin-bottom: 2rem;
+        }
+        
+        .control-group h3 {
+            margin-bottom: 1rem;
+            color: var(--pico-primary-500);
+            font-size: 1.1rem;
+        }
+        
+        .color-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .color-input {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .color-input input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+        }
+        
+        .icon-search {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 0.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--pico-border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background: var(--pico-background-color);
+        }
+        
+        .icon-item {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--pico-border-color);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--pico-card-background-color);
+        }
+        
+        .icon-item:hover {
+            border-color: var(--pico-primary-500);
+            background: var(--pico-primary-100);
+        }
+        
+        .icon-item.selected {
+            border-color: var(--pico-primary-500);
+            background: var(--pico-primary-200);
+        }
+        
+        .range-group {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .range-value {
+            font-weight: 600;
+            min-width: 3rem;
+            text-align: center;
+            background: var(--pico-background-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            border: 1px solid var(--pico-border-color);
+        }
+        
+        .position-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--pico-border-color);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--pico-primary-500);
+            background: var(--pico-primary-50);
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--pico-primary-500);
+            background: var(--pico-primary-100);
+        }
+        
+        .download-section {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--pico-border-color);
+        }
+        
+        .download-button {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .download-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .preview-section {
+                position: static;
+                order: -1;
+            }
+            
+            :root {
+                --preview-size: 150px;
+            }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>SVG Favicon Generator</h1>
+            <p>Create beautiful SVG favicons with gradients and custom icons</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="preview-section">
+                <div class="preview-container">
+                    <svg id="preview-svg" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="gradient" x1="100%" y1="0%" x2="0%" y2="100%">
+                                <stop stop-color="#3b82f6"/>
+                                <stop offset="1" stop-color="#8b5cf6"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="32" height="32" rx="4" fill="url(#gradient)"/>
+                        <svg x="8" y="8" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="whitesmoke" stroke-width="2">
+                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+                            <path d="m9 22V12h6V22"/>
+                        </svg>
+                    </svg>
+                </div>
+                
+                <div class="download-section">
+                    <button id="download-btn" class="download-button">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7,10 12,15 17,10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Download favicon.svg
+                    </button>
+                </div>
+            </div>
+            
+            <div class="controls-section">
+                <div class="control-group">
+                    <h3>Background</h3>
+                    <div class="color-input-group">
+                        <div class="color-input">
+                            <input type="color" id="color1" value="#3b82f6">
+                            <label for="color1">Start Color</label>
+                        </div>
+                        <div class="color-input">
+                            <input type="color" id="color2" value="#8b5cf6">
+                            <label for="color2">End Color</label>
+                        </div>
+                    </div>
+                    <div class="range-group" style="margin-top: 1rem;">
+                        <label for="gradient-angle">Gradient Angle</label>
+                        <input type="range" id="gradient-angle" min="0" max="360" value="135">
+                        <span class="range-value" id="angle-value">135°</span>
+                    </div>
+                    <div class="range-group">
+                        <label for="border-radius">Border Radius</label>
+                        <input type="range" id="border-radius" min="0" max="16" value="4">
+                        <span class="range-value" id="radius-value">4</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Icon</h3>
+                    <div class="icon-search">
+                        <input type="text" id="icon-search" placeholder="Search icons..." style="margin-bottom: 1rem;">
+                        <div class="icon-grid" id="icon-grid"></div>
+                    </div>
+                    
+                    <div class="color-input">
+                        <input type="color" id="icon-color" value="#f5f5f5">
+                        <label for="icon-color">Icon Color</label>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Icon Position & Size</h3>
+                    <div class="position-controls">
+                        <div class="range-group">
+                            <label for="icon-x">X Position</label>
+                            <input type="range" id="icon-x" min="0" max="32" value="8">
+                            <span class="range-value" id="x-value">8</span>
+                        </div>
+                        <div class="range-group">
+                            <label for="icon-y">Y Position</label>
+                            <input type="range" id="icon-y" min="0" max="32" value="8">
+                            <span class="range-value" id="y-value">8</span>
+                        </div>
+                    </div>
+                    <div class="range-group">
+                        <label for="icon-size">Icon Size</label>
+                        <input type="range" id="icon-size" min="4" max="28" value="16">
+                        <span class="range-value" id="size-value">16</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Custom Icon Upload</h3>
+                    <div class="upload-area" id="upload-area">
+                        <input type="file" id="file-input" accept=".svg,image/*" class="hidden">
+                        <p>Click or drag to upload custom icon</p>
+                        <small>SVG, PNG, JPG supported</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <meta property="og:title" content="svg-sparkle-icon-maker" />
-    <meta property="og:description" content="Lovable Generated Project" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <script src="https://cdn.jsdelivr.net/npm/svgo@3.0.2/dist/svgo.browser.js"></script>
+    <script>
+        // Icon data from Lucide React
+        const popularIcons = [
+            { name: 'home', path: 'm3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z|m9 22V12h6V22' },
+            { name: 'heart', path: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z' },
+            { name: 'star', path: 'm12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z' },
+            { name: 'user', path: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2|M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z' },
+            { name: 'mail', path: 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2Z|l8 5 8-5' },
+            { name: 'phone', path: 'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z' },
+            { name: 'globe', path: 'M21.54 15H17a2 2 0 0 0-2 2v4.54M7 3.34V5a3 3 0 0 0 3 3v0a2 2 0 0 1 2 2v0c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17M11 21.95V18a2 2 0 0 0-2-2v0a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z' },
+            { name: 'settings', path: 'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z|M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z' },
+            { name: 'search', path: 'm21 21-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z' },
+            { name: 'plus', path: 'M12 5v14|M5 12h14' },
+            { name: 'minus', path: 'M5 12h14' },
+            { name: 'check', path: 'M20 6 9 17l-5-5' },
+            { name: 'x', path: 'M18 6 6 18|M6 6l12 12' },
+            { name: 'menu', path: 'M3 12h18|M3 6h18|M3 18h18' },
+            { name: 'arrow-right', path: 'M5 12h14|m-7-7 7 7-7 7' },
+            { name: 'arrow-left', path: 'M19 12H5|m7 7-7-7 7-7' },
+            { name: 'arrow-up', path: 'M12 19V5|m-7 7 7-7 7 7' },
+            { name: 'arrow-down', path: 'M12 5v14|m7-7-7 7-7-7' },
+            { name: 'download', path: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4|M7 10l5 5 5-5|M12 15V3' },
+            { name: 'upload', path: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4|M17 8l-5-5-5 5|M12 3v12' },
+            { name: 'eye', path: 'M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z|M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z' },
+            { name: 'camera', path: 'M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z|M12 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z' },
+            { name: 'image', path: 'M15 8h.01|M3 3v18h18V3H3Z|m3 15 4-4c.928-.893 2.072-.893 3 0l5 5|m0 0 1-1c.928-.893 2.072-.893 3 0L21 21' },
+            { name: 'music', path: 'M9 18V5l12-2v13|m-6 0a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z|M21 16a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z' },
+            { name: 'video', path: 'm23 7-7 5 7 5V7Z|M6 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z' },
+            { name: 'lock', path: 'M18 8h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1|M8 8V6a4 4 0 0 1 8 0v2|M12 14v2' },
+            { name: 'key', path: 'M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4' },
+            { name: 'shield', path: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z' },
+            { name: 'bookmark', path: 'm19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16Z' },
+            { name: 'calendar', path: 'M8 2v4|M16 2v4|M3 10h18|M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z' },
+            { name: 'clock', path: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z|M12 6v6l4 2' },
+            { name: 'map-pin', path: 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z|M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z' },
+            { name: 'shopping-cart', path: 'm9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z|m20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z|M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6' },
+            { name: 'gift', path: 'M20 12v10H4V12|M2 7h20v5H2z|m12 15V7|M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7s1-5 4.5-5a2.5 2.5 0 0 1 0 5H12Z' }
+        ];
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+        let currentIcon = popularIcons[0];
+        let customIconSvg = null;
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+        // Elements
+        const previewSvg = document.getElementById('preview-svg');
+        const color1Input = document.getElementById('color1');
+        const color2Input = document.getElementById('color2');
+        const gradientAngleInput = document.getElementById('gradient-angle');
+        const borderRadiusInput = document.getElementById('border-radius');
+        const iconColorInput = document.getElementById('icon-color');
+        const iconXInput = document.getElementById('icon-x');
+        const iconYInput = document.getElementById('icon-y');
+        const iconSizeInput = document.getElementById('icon-size');
+        const iconSearchInput = document.getElementById('icon-search');
+        const iconGrid = document.getElementById('icon-grid');
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const downloadBtn = document.getElementById('download-btn');
+
+        // Value display elements
+        const angleValue = document.getElementById('angle-value');
+        const radiusValue = document.getElementById('radius-value');
+        const xValue = document.getElementById('x-value');
+        const yValue = document.getElementById('y-value');
+        const sizeValue = document.getElementById('size-value');
+
+        // Initialize icon grid
+        function initIconGrid() {
+            iconGrid.innerHTML = '';
+            popularIcons.forEach((icon, index) => {
+                const iconElement = document.createElement('div');
+                iconElement.className = 'icon-item';
+                if (index === 0) iconElement.classList.add('selected');
+                
+                iconElement.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        ${icon.path.split('|').map(path => `<path d="${path}"/>`).join('')}
+                    </svg>
+                `;
+                
+                iconElement.addEventListener('click', () => {
+                    document.querySelectorAll('.icon-item').forEach(item => item.classList.remove('selected'));
+                    iconElement.classList.add('selected');
+                    currentIcon = icon;
+                    customIconSvg = null;
+                    updatePreview();
+                });
+                
+                iconGrid.appendChild(iconElement);
+            });
+        }
+
+        // Search icons
+        iconSearchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredIcons = popularIcons.filter(icon => 
+                icon.name.toLowerCase().includes(searchTerm)
+            );
+            
+            iconGrid.innerHTML = '';
+            filteredIcons.forEach(icon => {
+                const iconElement = document.createElement('div');
+                iconElement.className = 'icon-item';
+                
+                iconElement.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        ${icon.path.split('|').map(path => `<path d="${path}"/>`).join('')}
+                    </svg>
+                `;
+                
+                iconElement.addEventListener('click', () => {
+                    document.querySelectorAll('.icon-item').forEach(item => item.classList.remove('selected'));
+                    iconElement.classList.add('selected');
+                    currentIcon = icon;
+                    customIconSvg = null;
+                    updatePreview();
+                });
+                
+                iconGrid.appendChild(iconElement);
+            });
+        });
+
+        // Update preview
+        function updatePreview() {
+            const angle = parseInt(gradientAngleInput.value);
+            const radius = parseInt(borderRadiusInput.value);
+            const color1 = color1Input.value;
+            const color2 = color2Input.value;
+            const iconColor = iconColorInput.value;
+            const iconX = parseInt(iconXInput.value);
+            const iconY = parseInt(iconYInput.value);
+            const iconSize = parseInt(iconSizeInput.value);
+
+            // Calculate gradient coordinates based on angle
+            const radians = (angle - 90) * Math.PI / 180;
+            const x1 = Math.round((1 + Math.cos(radians)) * 50);
+            const y1 = Math.round((1 + Math.sin(radians)) * 50);
+            const x2 = Math.round((1 - Math.cos(radians)) * 50);
+            const y2 = Math.round((1 - Math.sin(radians)) * 50);
+
+            let iconContent = '';
+            if (customIconSvg) {
+                iconContent = customIconSvg;
+            } else {
+                iconContent = `
+                    <svg x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2">
+                        ${currentIcon.path.split('|').map(path => `<path d="${path}"/>`).join('')}
+                    </svg>
+                `;
+            }
+
+            previewSvg.innerHTML = `
+                <defs>
+                    <linearGradient id="gradient" x1="${x1}%" y1="${y1}%" x2="${x2}%" y2="${y2}%">
+                        <stop stop-color="${color1}"/>
+                        <stop offset="1" stop-color="${color2}"/>
+                    </linearGradient>
+                </defs>
+                <rect width="32" height="32" rx="${radius}" fill="url(#gradient)"/>
+                ${iconContent}
+            `;
+        }
+
+        // Update value displays
+        function updateValueDisplays() {
+            angleValue.textContent = gradientAngleInput.value + '°';
+            radiusValue.textContent = borderRadiusInput.value;
+            xValue.textContent = iconXInput.value;
+            yValue.textContent = iconYInput.value;
+            sizeValue.textContent = iconSizeInput.value;
+        }
+
+        // Event listeners
+        [color1Input, color2Input, gradientAngleInput, borderRadiusInput, 
+         iconColorInput, iconXInput, iconYInput, iconSizeInput].forEach(input => {
+            input.addEventListener('input', () => {
+                updatePreview();
+                updateValueDisplays();
+            });
+        });
+
+        // File upload
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+
+        function handleFileUpload(file) {
+            const reader = new FileReader();
+            
+            if (file.type === 'image/svg+xml') {
+                reader.onload = (e) => {
+                    const svgContent = e.target.result;
+                    const parser = new DOMParser();
+                    const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
+                    const svgElement = svgDoc.documentElement;
+                    
+                    // Modify the SVG to fit our needs
+                    svgElement.setAttribute('x', iconXInput.value);
+                    svgElement.setAttribute('y', iconYInput.value);
+                    svgElement.setAttribute('width', iconSizeInput.value);
+                    svgElement.setAttribute('height', iconSizeInput.value);
+                    svgElement.setAttribute('fill', iconColorInput.value);
+                    
+                    customIconSvg = svgElement.outerHTML;
+                    updatePreview();
+                };
+                reader.readAsText(file);
+            } else if (file.type.startsWith('image/')) {
+                reader.onload = (e) => {
+                    customIconSvg = `
+                        <image x="${iconXInput.value}" y="${iconYInput.value}" 
+                               width="${iconSizeInput.value}" height="${iconSizeInput.value}" 
+                               href="${e.target.result}"/>
+                    `;
+                    updatePreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Download functionality
+        downloadBtn.addEventListener('click', async () => {
+            const svgString = previewSvg.outerHTML;
+            
+            try {
+                // Minify with SVGO
+                const optimizedSvg = SVGO.optimize(svgString, {
+                    plugins: [
+                        'preset-default',
+                        'removeViewBox',
+                        'removeDimensions'
+                    ]
+                });
+                
+                const blob = new Blob([optimizedSvg.data], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'favicon.svg';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                // Fallback without SVGO
+                const blob = new Blob([svgString], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'favicon.svg';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        });
+
+        // Initialize
+        initIconGrid();
+        updatePreview();
+        updateValueDisplays();
+    </script>
+</body>
 </html>
