@@ -287,7 +287,7 @@
                         </defs>
                         <rect width="32" height="32" rx="4" fill="url(#gradient)"/>
                         <svg x="8" y="8" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="whitesmoke" stroke-width="2">
-                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                             <path d="m9 22V12h6V22"/>
                         </svg>
                     </svg>
@@ -384,64 +384,18 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/svgo@3.0.2/dist/svgo.browser.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script>
-        // Expanded icon data from Lucide React - more comprehensive set
+        // Updated icon data - now using official Lucide icon names
         const popularIcons = [
-            { name: 'home', path: 'm3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z|m9 22V12h6V22' },
-            { name: 'heart', path: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z' },
-            { name: 'star', path: 'm12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z' },
-            { name: 'user', path: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2|M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z' },
-            { name: 'mail', path: 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2Z|l8 5 8-5' },
-            { name: 'phone', path: 'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z' },
-            { name: 'globe', path: 'M21.54 15H17a2 2 0 0 0-2 2v4.54M7 3.34V5a3 3 0 0 0 3 3v0a2 2 0 0 1 2 2v0c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17M11 21.95V18a2 2 0 0 0-2-2v0a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z' },
-            { name: 'settings', path: 'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z|M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z' },
-            { name: 'search', path: 'm21 21-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z' },
-            { name: 'plus', path: 'M12 5v14|M5 12h14' },
-            { name: 'minus', path: 'M5 12h14' },
-            { name: 'check', path: 'M20 6 9 17l-5-5' },
-            { name: 'x', path: 'M18 6 6 18|M6 6l12 12' },
-            { name: 'menu', path: 'M3 12h18|M3 6h18|M3 18h18' },
-            { name: 'arrow-right', path: 'M5 12h14|m-7-7 7 7-7 7' },
-            { name: 'arrow-left', path: 'M19 12H5|m7 7-7-7 7-7' },
-            { name: 'arrow-up', path: 'M12 19V5|m-7 7 7-7 7 7' },
-            { name: 'arrow-down', path: 'M12 5v14|m7-7-7 7-7-7' },
-            { name: 'download', path: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4|M7 10l5 5 5-5|M12 15V3' },
-            { name: 'upload', path: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4|M17 8l-5-5-5 5|M12 3v12' },
-            { name: 'eye', path: 'M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z|M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z' },
-            { name: 'camera', path: 'M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z|M12 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z' },
-            { name: 'image', path: 'M15 8h.01|M3 3v18h18V3H3Z|m3 15 4-4c.928-.893 2.072-.893 3 0l5 5|m0 0 1-1c.928-.893 2.072-.893 3 0L21 21' },
-            { name: 'music', path: 'M9 18V5l12-2v13|m-6 0a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z|M21 16a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z' },
-            { name: 'video', path: 'm23 7-7 5 7 5V7Z|M6 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z' },
-            { name: 'lock', path: 'M18 8h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1|M8 8V6a4 4 0 0 1 8 0v2|M12 14v2' },
-            { name: 'key', path: 'M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4' },
-            { name: 'shield', path: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z' },
-            { name: 'bookmark', path: 'm19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16Z' },
-            { name: 'calendar', path: 'M8 2v4|M16 2v4|M3 10h18|M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z' },
-            { name: 'clock', path: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z|M12 6v6l4 2' },
-            { name: 'map-pin', path: 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z|M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z' },
-            { name: 'shopping-cart', path: 'm9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z|m20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z|M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6' },
-            { name: 'gift', path: 'M20 12v10H4V12|M2 7h20v5H2z|m12 15V7|M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7s1-5 4.5-5a2.5 2.5 0 0 1 0 5H12Z' },
-            { name: 'code', path: 'm16 18 6-6-6-6|m-8 6-6-6 6-6' },
-            { name: 'database', path: 'M4 6c0 1.657 3.582 3 8 3s8-1.343 8-3-3.582-3-8-3-8 1.343-8 3Z|M4 6v6c0 1.657 3.582 3 8 3s8-1.343 8-3V6|M4 12v6c0 1.657 3.582 3 8 3s8-1.343 8-3v-6' },
-            { name: 'wifi', path: 'm1 9 2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.07 2.93 1 9Z|m5 4 2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.86 9.14 6 13Z|m4 4 2 2 2-2c-1.10-1.10-2.90-1.10-4 0Z' },
-            { name: 'cpu', path: 'M4 16V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z|M9 9h6v6H9V9Z|M9 2v4|M15 2v4|M9 18v4|M15 18v4|M20 9h2|M20 15h2|M2 9h2|M2 15h2' },
-            { name: 'server', path: 'M6 10H4a2 2 0 0 1-2-2V4c0-1.1.9-2 2-2h16a2 2 0 0 0 2 2v4a2 2 0 0 0-2 2h-2|M6 10l0 4H4a2 2 0 0 0-2 2v4c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-2l0-4|M6 6h.01|M6 18h.01' },
-            { name: 'folder', path: 'M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z' },
-            { name: 'file', path: 'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z|M14 2v4a2 2 0 0 0 2 2h4' },
-            { name: 'layers', path: 'M12 2 2 7l10 5 10-5-10-5Z|m-10 10 10 5 10-5|m-10 4 10 5 10-5' },
-            { name: 'trending-up', path: 'm22 7-8.5 8.5-5-5L2 17|M16 7h6v6' },
-            { name: 'trending-down', path: 'm22 17-8.5-8.5-5 5L2 7|M16 17h6v-6' },
-            { name: 'activity', path: 'M22 12h-2.48a2 2 0 0 0-1.93 2.52l-1.35 6.75a2 2 0 0 1-3.88 0L9.14 9.52a2 2 0 0 0-3.88 0l-.87 4.36A2 2 0 0 1 2.48 16H2' },
-            { name: 'zap', path: 'M4 14a1 1 0 0 1-.78-1.63l5.54-6.93A1 1 0 0 1 9.54 5H20a1 1 0 0 1 .78 1.63l-5.54 6.93A1 1 0 0 1 14.46 14H4Z|M12 5v14' },
-            { name: 'palette', path: 'M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10c1.38 0 2.5-.56 2.5-1.25 0-.34-.13-.65-.35-.9-.22-.24-.35-.55-.35-.9 0-.69.56-1.25 1.25-1.25H16c3.31 0 6-2.69 6-6 0-5.51-4.49-10-10-10Z|M7 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z|M12 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z|M17 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z|M9 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z' },
-            { name: 'sun', path: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z|m12 0h.01|m12 0h.01|M6.34 17.66l-.7.7|M6.34 6.34l-.7-.7|M17.66 6.34l.7-.7|M17.66 17.66l.7.7|M12 1v.01|M12 23v.01|M20.49 9l-1.04-.55|M5.55 14.45l-.96-.55|M8 12H1|M23 12h-7|M8.77 4.07l-.92-.37|M17.15 19.93l-.92-.37|M15.23 4.07l.92-.37|M6.85 19.93l.92-.37' },
-            { name: 'moon', path: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z' },
-            { name: 'cloud', path: 'M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z' },
-            { name: 'umbrella', path: 'M23 12a11.05 11.05 0 0 0-22 0zm-5 7a3 3 0 0 1-6 0v-7' },
-            { name: 'coffee', path: 'M10 2h4|M12 17v3|M5 8h14l-1 8H6L5 8Z|M6 2l1.5 4L9 2|M15 2l1.5 4L18 2' },
-            { name: 'car', path: 'M8 21v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2|M7 21h2m6 0h2m-6-4H9.5a2.5 2.5 0 0 1 0-5h5a2.5 2.5 0 0 1 0 5H13m-6-7h6l2-6h-2l-2 6H7z' },
-            { name: 'plane', path: 'M17.8 19.2 16 11l3.5-3.5C21 6 21 4 19 4s-2 2-3.5 3.5L11 16l-8.2 1.8c-.5.1-.9.6-.8 1.1.1.5.6.9 1.1.8L11 17.8 17.8 19.2Z' },
-            { name: 'gamepad-2', path: 'M6 11h4m-2-2v4|M15 12h.01|M18 15h.01|M17 2H7a5 5 0 0 0-5 5v6a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5Z' }
+            'home', 'heart', 'star', 'user', 'mail', 'phone', 'globe', 'settings',
+            'search', 'plus', 'minus', 'check', 'x', 'menu', 'arrow-right', 'arrow-left',
+            'arrow-up', 'arrow-down', 'download', 'upload', 'eye', 'camera', 'image',
+            'music', 'video', 'lock', 'key', 'shield', 'bookmark', 'calendar', 'clock',
+            'map-pin', 'shopping-cart', 'gift', 'code', 'database', 'wifi', 'cpu',
+            'server', 'folder', 'file', 'layers', 'trending-up', 'trending-down',
+            'activity', 'zap', 'palette', 'sun', 'moon', 'cloud', 'umbrella', 'coffee',
+            'car', 'plane', 'gamepad-2'
         ];
 
         let currentIcon = popularIcons[0];
@@ -473,6 +427,20 @@
         const sizeValue = document.getElementById('size-value');
         const strokeValue = document.getElementById('stroke-value');
 
+        // Get Lucide icon SVG content
+        function getLucideIconSvg(iconName) {
+            try {
+                const iconData = lucide.icons[iconName];
+                if (iconData) {
+                    return iconData.toSvg();
+                }
+            } catch (error) {
+                console.warn(`Icon ${iconName} not found, using fallback`);
+            }
+            // Fallback to a simple circle if icon not found
+            return '<circle cx="12" cy="12" r="10"/>';
+        }
+
         // Update favicon dynamically
         function updateFavicon() {
             const svgString = previewSvg.outerHTML;
@@ -499,21 +467,27 @@
         // Initialize icon grid function
         function initIconGrid() {
             iconGrid.innerHTML = '';
-            popularIcons.forEach((icon, index) => {
+            popularIcons.forEach((iconName, index) => {
                 const iconElement = document.createElement('div');
                 iconElement.className = 'icon-item';
                 if (index === 0) iconElement.classList.add('selected');
                 
-                iconElement.innerHTML = `
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        ${icon.path.split('|').map(path => `<path d="${path}"/>`).join('')}
-                    </svg>
-                `;
+                // Create a temporary div to parse the Lucide SVG
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = getLucideIconSvg(iconName);
+                const lucideSvg = tempDiv.querySelector('svg');
+                
+                if (lucideSvg) {
+                    lucideSvg.setAttribute('width', '20');
+                    lucideSvg.setAttribute('height', '20');
+                    lucideSvg.setAttribute('stroke', 'currentColor');
+                    iconElement.appendChild(lucideSvg);
+                }
                 
                 iconElement.addEventListener('click', () => {
                     document.querySelectorAll('.icon-item').forEach(item => item.classList.remove('selected'));
                     iconElement.classList.add('selected');
-                    currentIcon = icon;
+                    currentIcon = iconName;
                     customIconSvg = null;
                     updatePreview();
                 });
@@ -525,25 +499,31 @@
         // Search icons
         iconSearchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
-            const filteredIcons = popularIcons.filter(icon => 
-                icon.name.toLowerCase().includes(searchTerm)
+            const filteredIcons = popularIcons.filter(iconName => 
+                iconName.toLowerCase().includes(searchTerm)
             );
             
             iconGrid.innerHTML = '';
-            filteredIcons.forEach(icon => {
+            filteredIcons.forEach(iconName => {
                 const iconElement = document.createElement('div');
                 iconElement.className = 'icon-item';
                 
-                iconElement.innerHTML = `
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        ${icon.path.split('|').map(path => `<path d="${path}"/>`).join('')}
-                    </svg>
-                `;
+                // Create a temporary div to parse the Lucide SVG
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = getLucideIconSvg(iconName);
+                const lucideSvg = tempDiv.querySelector('svg');
+                
+                if (lucideSvg) {
+                    lucideSvg.setAttribute('width', '20');
+                    lucideSvg.setAttribute('height', '20');
+                    lucideSvg.setAttribute('stroke', 'currentColor');
+                    iconElement.appendChild(lucideSvg);
+                }
                 
                 iconElement.addEventListener('click', () => {
                     document.querySelectorAll('.icon-item').forEach(item => item.classList.remove('selected'));
                     iconElement.classList.add('selected');
-                    currentIcon = icon;
+                    currentIcon = iconName;
                     customIconSvg = null;
                     updatePreview();
                 });
@@ -575,11 +555,21 @@
             if (customIconSvg) {
                 iconContent = customIconSvg;
             } else {
-                iconContent = `
-                    <svg x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="${strokeWidth}">
-                        ${currentIcon.path.split('|').map(path => `<path d="${path}"/>`).join('')}
-                    </svg>
-                `;
+                // Get the Lucide icon SVG and modify it for our needs
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = getLucideIconSvg(currentIcon);
+                const lucideSvg = tempDiv.querySelector('svg');
+                
+                if (lucideSvg) {
+                    lucideSvg.setAttribute('x', iconX);
+                    lucideSvg.setAttribute('y', iconY);
+                    lucideSvg.setAttribute('width', iconSize);
+                    lucideSvg.setAttribute('height', iconSize);
+                    lucideSvg.setAttribute('stroke', iconColor);
+                    lucideSvg.setAttribute('stroke-width', strokeWidth);
+                    lucideSvg.setAttribute('fill', 'none');
+                    iconContent = lucideSvg.outerHTML;
+                }
             }
 
             previewSvg.innerHTML = `
