@@ -374,9 +374,9 @@
                 <div class="control-group">
                     <h3>Custom Icon Upload</h3>
                     <div class="upload-area" id="upload-area">
-                        <input type="file" id="file-input" accept=".svg,image/*" class="hidden">
-                        <p>Click or drag to upload custom icon</p>
-                        <small>SVG, PNG, JPG supported</small>
+                        <input type="file" id="file-input" accept=".svg" class="hidden">
+                        <p>Click or drag to upload custom SVG icon</p>
+                        <small>Only SVG files with path elements supported</small>
                     </div>
                 </div>
             </div>
@@ -630,37 +630,60 @@
         });
 
         function handleFileUpload(file) {
-            const reader = new FileReader();
-            
-            if (file.type === 'image/svg+xml') {
-                reader.onload = (e) => {
-                    const svgContent = e.target.result;
-                    const parser = new DOMParser();
-                    const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
-                    const svgElement = svgDoc.documentElement;
-                    
-                    // Modify the SVG to fit our needs
-                    svgElement.setAttribute('x', iconXInput.value);
-                    svgElement.setAttribute('y', iconYInput.value);
-                    svgElement.setAttribute('width', iconSizeInput.value);
-                    svgElement.setAttribute('height', iconSizeInput.value);
-                    svgElement.setAttribute('fill', iconColorInput.value);
-                    
-                    customIconSvg = svgElement.outerHTML;
-                    updatePreview();
-                };
-                reader.readAsText(file);
-            } else if (file.type.startsWith('image/')) {
-                reader.onload = (e) => {
-                    customIconSvg = `
-                        <image x="${iconXInput.value}" y="${iconYInput.value}" 
-                               width="${iconSizeInput.value}" height="${iconSizeInput.value}" 
-                               href="${e.target.result}"/>
-                    `;
-                    updatePreview();
-                };
-                reader.readAsDataURL(file);
+            // Only accept SVG files
+            if (file.type !== 'image/svg+xml') {
+                alert('Please upload only SVG files.');
+                return;
             }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const svgContent = e.target.result;
+                const parser = new DOMParser();
+                const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
+                const svgElement = svgDoc.documentElement;
+                
+                // Check for parsing errors
+                if (svgElement.tagName !== 'svg') {
+                    alert('Invalid SVG file.');
+                    return;
+                }
+                
+                // Extract only path elements (excluding metadata like title, desc, etc.)
+                const pathElements = svgElement.querySelectorAll('path');
+                
+                if (pathElements.length === 0) {
+                    alert('SVG must contain at least one path element.');
+                    return;
+                }
+                
+                // Create a new SVG with only the paths
+                let pathsContent = '';
+                pathElements.forEach(path => {
+                    // Clone the path and set our styling
+                    const pathClone = path.cloneNode(true);
+                    pathClone.setAttribute('fill', iconColorInput.value);
+                    pathClone.setAttribute('stroke', iconColorInput.value);
+                    pathClone.setAttribute('stroke-width', strokeWidthInput.value);
+                    pathsContent += pathClone.outerHTML;
+                });
+                
+                // Get the original viewBox or use default
+                const originalViewBox = svgElement.getAttribute('viewBox') || '0 0 24 24';
+                
+                // Create the custom icon SVG with extracted paths
+                customIconSvg = `
+                    <svg x="${iconXInput.value}" y="${iconYInput.value}" 
+                         width="${iconSizeInput.value}" height="${iconSizeInput.value}" 
+                         viewBox="${originalViewBox}" xmlns="http://www.w3.org/2000/svg">
+                        ${pathsContent}
+                    </svg>
+                `;
+                
+                updatePreview();
+                alert('SVG paths extracted and applied successfully!');
+            };
+            reader.readAsText(file);
         }
 
         // Download functionality
