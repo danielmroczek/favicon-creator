@@ -439,7 +439,16 @@
             try {
                 const iconData = lucide.icons[iconName];
                 if (iconData) {
-                    return iconData.toSvg();
+                    const svgString = iconData.toSvg();
+                    // Parse the SVG to extract just the path content
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(svgString, 'image/svg+xml');
+                    const paths = doc.querySelectorAll('path, circle, rect, ellipse, line, polyline, polygon');
+                    let pathContent = '';
+                    paths.forEach(path => {
+                        pathContent += path.outerHTML;
+                    });
+                    return pathContent;
                 }
             } catch (error) {
                 console.warn(`Icon ${iconName} not found, using fallback`);
@@ -489,6 +498,17 @@
                     lucideSvg.setAttribute('height', '20');
                     lucideSvg.setAttribute('stroke', 'currentColor');
                     iconElement.appendChild(lucideSvg);
+                } else {
+                    // Create SVG wrapper for the path content
+                    const svgWrapper = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svgWrapper.setAttribute('width', '20');
+                    svgWrapper.setAttribute('height', '20');
+                    svgWrapper.setAttribute('viewBox', '0 0 24 24');
+                    svgWrapper.setAttribute('fill', 'none');
+                    svgWrapper.setAttribute('stroke', 'currentColor');
+                    svgWrapper.setAttribute('stroke-width', '2');
+                    svgWrapper.innerHTML = getLucideIconSvg(iconName);
+                    iconElement.appendChild(svgWrapper);
                 }
                 
                 iconElement.addEventListener('click', () => {
@@ -515,17 +535,16 @@
                 const iconElement = document.createElement('div');
                 iconElement.className = 'icon-item';
                 
-                // Create a temporary div to parse the Lucide SVG
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = getLucideIconSvg(iconName);
-                const lucideSvg = tempDiv.querySelector('svg');
-                
-                if (lucideSvg) {
-                    lucideSvg.setAttribute('width', '20');
-                    lucideSvg.setAttribute('height', '20');
-                    lucideSvg.setAttribute('stroke', 'currentColor');
-                    iconElement.appendChild(lucideSvg);
-                }
+                // Create SVG wrapper for the path content
+                const svgWrapper = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svgWrapper.setAttribute('width', '20');
+                svgWrapper.setAttribute('height', '20');
+                svgWrapper.setAttribute('viewBox', '0 0 24 24');
+                svgWrapper.setAttribute('fill', 'none');
+                svgWrapper.setAttribute('stroke', 'currentColor');
+                svgWrapper.setAttribute('stroke-width', '2');
+                svgWrapper.innerHTML = getLucideIconSvg(iconName);
+                iconElement.appendChild(svgWrapper);
                 
                 iconElement.addEventListener('click', () => {
                     document.querySelectorAll('.icon-item').forEach(item => item.classList.remove('selected'));
@@ -566,44 +585,38 @@
                 const centerY = iconY + iconSize / 2;
                 const rotationTransform = iconRotation !== 0 ? `rotate(${iconRotation} ${centerX} ${centerY})` : '';
                 
+                // Replace currentColor with actual color in the elements
+                const coloredElements = customIconSvg.elements.replace(/currentColor/g, iconColor).replace(/inherit/g, strokeWidth);
+                
                 iconContent = `
                     <svg x="${iconX}" y="${iconY}" 
                          width="${iconSize}" height="${iconSize}" 
                          viewBox="${customIconSvg.viewBox}"
-                         stroke="${iconColor}"
-                         stroke-width="${strokeWidth}"
                          fill="none"
                          ${rotationTransform ? `transform="${rotationTransform}"` : ''}
                          xmlns="http://www.w3.org/2000/svg">
-                        ${customIconSvg.elements}
+                        ${coloredElements}
                     </svg>
                 `;
             } else {
-                // Get the Lucide icon SVG and modify it for our needs
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = getLucideIconSvg(currentIcon);
-                const lucideSvg = tempDiv.querySelector('svg');
+                // For Lucide icons, get the path content and create SVG
+                const pathContent = getLucideIconSvg(currentIcon);
+                const centerX = iconX + iconSize / 2;
+                const centerY = iconY + iconSize / 2;
+                const rotationTransform = iconRotation !== 0 ? `rotate(${iconRotation} ${centerX} ${centerY})` : '';
                 
-                if (lucideSvg) {
-                    lucideSvg.setAttribute('x', iconX);
-                    lucideSvg.setAttribute('y', iconY);
-                    lucideSvg.setAttribute('width', iconSize);
-                    lucideSvg.setAttribute('height', iconSize);
-                    lucideSvg.setAttribute('stroke', iconColor);
-                    lucideSvg.setAttribute('stroke-width', strokeWidth);
-                    lucideSvg.setAttribute('fill', 'none');
-                    
-                    // Add rotation transform
-                    if (iconRotation !== 0) {
-                        const centerX = iconX + iconSize / 2;
-                        const centerY = iconY + iconSize / 2;
-                        lucideSvg.setAttribute('transform', `rotate(${iconRotation} ${centerX} ${centerY})`);
-                    } else {
-                        lucideSvg.removeAttribute('transform');
-                    }
-                    
-                    iconContent = lucideSvg.outerHTML;
-                }
+                iconContent = `
+                    <svg x="${iconX}" y="${iconY}" 
+                         width="${iconSize}" height="${iconSize}" 
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="${iconColor}"
+                         stroke-width="${strokeWidth}"
+                         ${rotationTransform ? `transform="${rotationTransform}"` : ''}
+                         xmlns="http://www.w3.org/2000/svg">
+                        ${pathContent}
+                    </svg>
+                `;
             }
 
             previewSvg.innerHTML = `
