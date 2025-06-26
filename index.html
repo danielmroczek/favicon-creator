@@ -561,26 +561,23 @@
 
             let iconContent = '';
             if (customIconSvg) {
-                // For custom SVG, update the positions, size, and rotation without changing original styling
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(customIconSvg, 'image/svg+xml');
-                const svgElement = doc.documentElement;
+                // For custom SVG, create a new SVG element with current controls applied
+                const centerX = iconX + iconSize / 2;
+                const centerY = iconY + iconSize / 2;
+                const rotationTransform = iconRotation !== 0 ? `rotate(${iconRotation} ${centerX} ${centerY})` : '';
                 
-                svgElement.setAttribute('x', iconX);
-                svgElement.setAttribute('y', iconY);
-                svgElement.setAttribute('width', iconSize);
-                svgElement.setAttribute('height', iconSize);
-                
-                // Add rotation transform
-                if (iconRotation !== 0) {
-                    const centerX = iconX + iconSize / 2;
-                    const centerY = iconY + iconSize / 2;
-                    svgElement.setAttribute('transform', `rotate(${iconRotation} ${centerX} ${centerY})`);
-                } else {
-                    svgElement.removeAttribute('transform');
-                }
-                
-                iconContent = svgElement.outerHTML;
+                iconContent = `
+                    <svg x="${iconX}" y="${iconY}" 
+                         width="${iconSize}" height="${iconSize}" 
+                         viewBox="${customIconSvg.viewBox}"
+                         stroke="${iconColor}"
+                         stroke-width="${strokeWidth}"
+                         fill="none"
+                         ${rotationTransform ? `transform="${rotationTransform}"` : ''}
+                         xmlns="http://www.w3.org/2000/svg">
+                        ${customIconSvg.elements}
+                    </svg>
+                `;
             } else {
                 // Get the Lucide icon SVG and modify it for our needs
                 const tempDiv = document.createElement('div');
@@ -695,33 +692,30 @@
                     return;
                 }
                 
-                // Create a new SVG with extracted elements, preserving original styling
+                // Create a new SVG with extracted elements, removing fills and ensuring stroke styling
                 let elementsContent = '';
                 pathElements.forEach(element => {
                     const elementClone = element.cloneNode(true);
-                    // Only override stroke and stroke-width if not already set and it's not filled
-                    if (!elementClone.getAttribute('fill') || elementClone.getAttribute('fill') === 'none') {
-                        if (!elementClone.getAttribute('stroke')) {
-                            elementClone.setAttribute('stroke', iconColorInput.value);
-                        }
-                        if (!elementClone.getAttribute('stroke-width')) {
-                            elementClone.setAttribute('stroke-width', strokeWidthInput.value);
-                        }
-                    }
+                    
+                    // Remove any fill attributes to make it transparent
+                    elementClone.removeAttribute('fill');
+                    elementClone.setAttribute('fill', 'none');
+                    
+                    // Set stroke properties that will be controlled by our controls
+                    elementClone.setAttribute('stroke', 'currentColor');
+                    elementClone.setAttribute('stroke-width', 'inherit');
+                    
                     elementsContent += elementClone.outerHTML;
                 });
                 
                 // Get the original viewBox or use default
                 const originalViewBox = svgElement.getAttribute('viewBox') || '0 0 24 24';
                 
-                // Create the custom icon SVG with extracted elements
-                customIconSvg = `
-                    <svg x="${iconXInput.value}" y="${iconYInput.value}" 
-                         width="${iconSizeInput.value}" height="${iconSizeInput.value}" 
-                         viewBox="${originalViewBox}" xmlns="http://www.w3.org/2000/svg">
-                        ${elementsContent}
-                    </svg>
-                `;
+                // Store the clean elements content for use in updatePreview
+                customIconSvg = {
+                    viewBox: originalViewBox,
+                    elements: elementsContent
+                };
                 
                 updatePreview();
                 alert('SVG elements extracted and applied successfully!');
