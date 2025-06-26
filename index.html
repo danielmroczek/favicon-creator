@@ -320,8 +320,8 @@
                     </div>
                     <div class="range-group" style="margin-top: 1rem;">
                         <label for="gradient-angle">Gradient Angle</label>
-                        <input type="range" id="gradient-angle" min="0" max="360" value="135">
-                        <span class="range-value" id="angle-value">135°</span>
+                        <input type="range" id="gradient-angle" min="0" max="360" value="315">
+                        <span class="range-value" id="angle-value">315°</span>
                     </div>
                     <div class="range-group">
                         <label for="border-radius">Border Radius</label>
@@ -350,7 +350,7 @@
                 </div>
                 
                 <div class="control-group">
-                    <h3>Icon Position & Size</h3>
+                    <h3>Icon Position, Size & Rotation</h3>
                     <div class="position-controls">
                         <div class="range-group">
                             <label for="icon-x">X Position</label>
@@ -367,6 +367,11 @@
                         <label for="icon-size">Icon Size</label>
                         <input type="range" id="icon-size" min="4" max="28" value="16">
                         <span class="range-value" id="size-value">16</span>
+                    </div>
+                    <div class="range-group">
+                        <label for="icon-rotation">Rotation</label>
+                        <input type="range" id="icon-rotation" min="0" max="360" value="0">
+                        <span class="range-value" id="rotation-value">0°</span>
                     </div>
                     <button id="center-icon" class="center-button">Center Icon</button>
                 </div>
@@ -412,6 +417,7 @@
         const iconXInput = document.getElementById('icon-x');
         const iconYInput = document.getElementById('icon-y');
         const iconSizeInput = document.getElementById('icon-size');
+        const iconRotationInput = document.getElementById('icon-rotation');
         const iconSearchInput = document.getElementById('icon-search');
         const iconGrid = document.getElementById('icon-grid');
         const uploadArea = document.getElementById('upload-area');
@@ -426,6 +432,7 @@
         const yValue = document.getElementById('y-value');
         const sizeValue = document.getElementById('size-value');
         const strokeValue = document.getElementById('stroke-value');
+        const rotationValue = document.getElementById('rotation-value');
 
         // Get Lucide icon SVG content
         function getLucideIconSvg(iconName) {
@@ -543,6 +550,7 @@
             const iconX = parseInt(iconXInput.value);
             const iconY = parseInt(iconYInput.value);
             const iconSize = parseInt(iconSizeInput.value);
+            const iconRotation = parseInt(iconRotationInput.value);
 
             // Calculate gradient coordinates based on angle
             const radians = (angle - 90) * Math.PI / 180;
@@ -553,7 +561,26 @@
 
             let iconContent = '';
             if (customIconSvg) {
-                iconContent = customIconSvg;
+                // For custom SVG, update the positions, size, and rotation without changing original styling
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(customIconSvg, 'image/svg+xml');
+                const svgElement = doc.documentElement;
+                
+                svgElement.setAttribute('x', iconX);
+                svgElement.setAttribute('y', iconY);
+                svgElement.setAttribute('width', iconSize);
+                svgElement.setAttribute('height', iconSize);
+                
+                // Add rotation transform
+                if (iconRotation !== 0) {
+                    const centerX = iconX + iconSize / 2;
+                    const centerY = iconY + iconSize / 2;
+                    svgElement.setAttribute('transform', `rotate(${iconRotation} ${centerX} ${centerY})`);
+                } else {
+                    svgElement.removeAttribute('transform');
+                }
+                
+                iconContent = svgElement.outerHTML;
             } else {
                 // Get the Lucide icon SVG and modify it for our needs
                 const tempDiv = document.createElement('div');
@@ -568,6 +595,16 @@
                     lucideSvg.setAttribute('stroke', iconColor);
                     lucideSvg.setAttribute('stroke-width', strokeWidth);
                     lucideSvg.setAttribute('fill', 'none');
+                    
+                    // Add rotation transform
+                    if (iconRotation !== 0) {
+                        const centerX = iconX + iconSize / 2;
+                        const centerY = iconY + iconSize / 2;
+                        lucideSvg.setAttribute('transform', `rotate(${iconRotation} ${centerX} ${centerY})`);
+                    } else {
+                        lucideSvg.removeAttribute('transform');
+                    }
+                    
                     iconContent = lucideSvg.outerHTML;
                 }
             }
@@ -594,11 +631,12 @@
             yValue.textContent = iconYInput.value;
             sizeValue.textContent = iconSizeInput.value;
             strokeValue.textContent = strokeWidthInput.value;
+            rotationValue.textContent = iconRotationInput.value + '°';
         }
 
         // Event listeners
         [color1Input, color2Input, gradientAngleInput, borderRadiusInput, 
-         iconColorInput, strokeWidthInput, iconXInput, iconYInput, iconSizeInput].forEach(input => {
+         iconColorInput, strokeWidthInput, iconXInput, iconYInput, iconSizeInput, iconRotationInput].forEach(input => {
             input.addEventListener('input', () => {
                 updatePreview();
                 updateValueDisplays();
@@ -650,38 +688,43 @@
                 }
                 
                 // Extract only path elements (excluding metadata like title, desc, etc.)
-                const pathElements = svgElement.querySelectorAll('path');
+                const pathElements = svgElement.querySelectorAll('path, circle, rect, ellipse, line, polyline, polygon');
                 
                 if (pathElements.length === 0) {
-                    alert('SVG must contain at least one path element.');
+                    alert('SVG must contain at least one drawable element (path, circle, rect, etc.).');
                     return;
                 }
                 
-                // Create a new SVG with only the paths
-                let pathsContent = '';
-                pathElements.forEach(path => {
-                    // Clone the path and set our styling
-                    const pathClone = path.cloneNode(true);
-                    pathClone.setAttribute('fill', iconColorInput.value);
-                    pathClone.setAttribute('stroke', iconColorInput.value);
-                    pathClone.setAttribute('stroke-width', strokeWidthInput.value);
-                    pathsContent += pathClone.outerHTML;
+                // Create a new SVG with extracted elements, preserving original styling
+                let elementsContent = '';
+                pathElements.forEach(element => {
+                    const elementClone = element.cloneNode(true);
+                    // Only override stroke and stroke-width if not already set and it's not filled
+                    if (!elementClone.getAttribute('fill') || elementClone.getAttribute('fill') === 'none') {
+                        if (!elementClone.getAttribute('stroke')) {
+                            elementClone.setAttribute('stroke', iconColorInput.value);
+                        }
+                        if (!elementClone.getAttribute('stroke-width')) {
+                            elementClone.setAttribute('stroke-width', strokeWidthInput.value);
+                        }
+                    }
+                    elementsContent += elementClone.outerHTML;
                 });
                 
                 // Get the original viewBox or use default
                 const originalViewBox = svgElement.getAttribute('viewBox') || '0 0 24 24';
                 
-                // Create the custom icon SVG with extracted paths
+                // Create the custom icon SVG with extracted elements
                 customIconSvg = `
                     <svg x="${iconXInput.value}" y="${iconYInput.value}" 
                          width="${iconSizeInput.value}" height="${iconSizeInput.value}" 
                          viewBox="${originalViewBox}" xmlns="http://www.w3.org/2000/svg">
-                        ${pathsContent}
+                        ${elementsContent}
                     </svg>
                 `;
                 
                 updatePreview();
-                alert('SVG paths extracted and applied successfully!');
+                alert('SVG elements extracted and applied successfully!');
             };
             reader.readAsText(file);
         }
