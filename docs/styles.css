@@ -1,0 +1,200 @@
+:root {
+    --preview-size: 200px;
+}
+
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.header h1 {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+.preview-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: sticky;
+    top: 2rem;
+}
+
+#preview-svg {
+    width: 10rem;
+    height: 10rem;
+    /* border-radius: 0.5rem; */
+}
+
+.color-input-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.color-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.color-input input[type="color"] {
+    width: 50px;
+    height: 40px;
+    border: 2px solid var(--pico-border-color);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    background: none;
+    padding: 2px;
+}
+
+.color-input input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-input input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 0.25rem;
+}
+
+.icon-search {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 0.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--pico-border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: var(--pico-background-color);
+}
+
+.icon-item {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--pico-border-color);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--pico-card-background-color);
+}
+
+.icon-item:hover {
+    border-color: var(--pico-primary-500);
+    background: var(--pico-primary-100);
+}
+
+.icon-item.selected {
+    border-color: var(--pico-primary-500);
+    background: var(--pico-primary-200);
+}
+
+.range-group {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: center;
+}
+
+.range-value {
+    font-weight: 600;
+    min-width: 3rem;
+    text-align: center;
+    background: var(--pico-background-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid var(--pico-border-color);
+}
+
+.position-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.center-button {
+    background: var(--pico-primary-500);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.center-button:hover {
+    background: var(--pico-primary-600);
+}
+
+.upload-area {
+    border: 2px dashed var(--pico-border-color);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.upload-area:hover {
+    border-color: var(--pico-primary-500);
+    background: var(--pico-primary-50);
+}
+
+.upload-area.dragover {
+    border-color: var(--pico-primary-500);
+    background: var(--pico-primary-100);
+}
+
+.download-section {
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid var(--pico-border-color);
+}
+
+.download-button {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border: none;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.download-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
