@@ -347,6 +347,15 @@
                         <input type="range" id="stroke-width" min="0.5" max="4" step="0.5" value="2">
                         <span class="range-value" id="stroke-value">2</span>
                     </div>
+                    
+                    <div style="margin-top: 1rem;">
+                        <label for="stroke-linecap">Stroke Line Cap</label>
+                        <select id="stroke-linecap" style="width: 100%; margin-top: 0.5rem;">
+                            <option value="round">Round</option>
+                            <option value="square">Square</option>
+                            <option value="butt">Butt</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="control-group">
@@ -414,6 +423,7 @@
         const borderRadiusInput = document.getElementById('border-radius');
         const iconColorInput = document.getElementById('icon-color');
         const strokeWidthInput = document.getElementById('stroke-width');
+        const strokeLinecapInput = document.getElementById('stroke-linecap');
         const iconXInput = document.getElementById('icon-x');
         const iconYInput = document.getElementById('icon-y');
         const iconSizeInput = document.getElementById('icon-size');
@@ -583,6 +593,7 @@
             const color2 = color2Input.value;
             const iconColor = iconColorInput.value;
             const strokeWidth = parseFloat(strokeWidthInput.value);
+            const strokeLinecap = strokeLinecapInput.value;
             const iconX = parseInt(iconXInput.value);
             const iconY = parseInt(iconYInput.value);
             const iconSize = parseInt(iconSizeInput.value);
@@ -602,13 +613,26 @@
                 const centerY = iconY + iconSize / 2;
                 const rotationTransform = iconRotation !== 0 ? `rotate(${iconRotation} ${centerX} ${centerY})` : '';
                 
-                // Apply stroke width and color to all elements
+                // Apply all stroke properties to custom SVG elements
                 let processedElements = customIconSvg.elements;
                 
-                // Set stroke attributes for all elements that support them
+                // Remove existing stroke attributes and apply new ones
+                processedElements = processedElements.replace(
+                    /stroke="[^"]*"/g, ''
+                ).replace(
+                    /stroke-width="[^"]*"/g, ''
+                ).replace(
+                    /stroke-linecap="[^"]*"/g, ''
+                ).replace(
+                    /stroke-linejoin="[^"]*"/g, ''
+                ).replace(
+                    /fill="[^"]*"/g, ''
+                );
+                
+                // Apply new stroke properties to all drawable elements
                 processedElements = processedElements.replace(
                     /(<(path|circle|rect|ellipse|line|polyline|polygon)[^>]*)/g, 
-                    `$1 stroke="${iconColor}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"`
+                    `$1 stroke="${iconColor}" stroke-width="${strokeWidth}" stroke-linecap="${strokeLinecap}" stroke-linejoin="round" fill="none"`
                 );
                 
                 iconContent = `
@@ -635,7 +659,7 @@
                          fill="none"
                          stroke="${iconColor}"
                          stroke-width="${strokeWidth}"
-                         stroke-linecap="round"
+                         stroke-linecap="${strokeLinecap}"
                          stroke-linejoin="round"
                          ${rotationTransform ? `transform="${rotationTransform}"` : ''}
                          xmlns="http://www.w3.org/2000/svg">
@@ -671,7 +695,7 @@
 
         // Event listeners
         [color1Input, color2Input, gradientAngleInput, borderRadiusInput, 
-         iconColorInput, strokeWidthInput, iconXInput, iconYInput, iconSizeInput, iconRotationInput].forEach(input => {
+         iconColorInput, strokeWidthInput, strokeLinecapInput, iconXInput, iconYInput, iconSizeInput, iconRotationInput].forEach(input => {
             input.addEventListener('input', () => {
                 updatePreview();
                 updateValueDisplays();
@@ -739,9 +763,11 @@
                     elementClone.removeAttribute('fill');
                     elementClone.setAttribute('fill', 'none');
                     
-                    // Set stroke properties that will be controlled by our controls
-                    elementClone.setAttribute('stroke', 'currentColor');
-                    elementClone.setAttribute('stroke-width', 'inherit');
+                    // Remove existing stroke attributes so they can be controlled
+                    elementClone.removeAttribute('stroke');
+                    elementClone.removeAttribute('stroke-width');
+                    elementClone.removeAttribute('stroke-linecap');
+                    elementClone.removeAttribute('stroke-linejoin');
                     
                     elementsContent += elementClone.outerHTML;
                 });
@@ -756,7 +782,7 @@
                 };
                 
                 updatePreview();
-                alert('SVG elements extracted and applied successfully!');
+                alert('Custom SVG uploaded successfully!');
             };
             reader.readAsText(file);
         }
