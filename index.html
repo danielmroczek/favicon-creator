@@ -613,10 +613,19 @@
                 const centerY = iconY + iconSize / 2;
                 const rotationTransform = iconRotation !== 0 ? `rotate(${iconRotation} ${centerX} ${centerY})` : '';
                 
+                // Calculate the scaling factor based on original viewBox vs current size
+                const originalViewBox = customIconSvg.viewBox.split(' ');
+                const originalWidth = parseFloat(originalViewBox[2]);
+                const originalHeight = parseFloat(originalViewBox[3]);
+                const scaleFactor = Math.min(iconSize / originalWidth, iconSize / originalHeight);
+                
+                // Calculate stroke width that maintains constant absolute thickness
+                const adjustedStrokeWidth = strokeWidth / scaleFactor;
+                
                 // Apply all stroke properties to custom SVG elements
                 let processedElements = customIconSvg.elements;
                 
-                // Remove existing stroke attributes and apply new ones
+                // Remove existing stroke and fill attributes
                 processedElements = processedElements.replace(
                     /stroke="[^"]*"/g, ''
                 ).replace(
@@ -629,10 +638,10 @@
                     /fill="[^"]*"/g, ''
                 );
                 
-                // Apply new stroke properties to all drawable elements
+                // Apply new stroke properties with adjusted stroke width
                 processedElements = processedElements.replace(
                     /(<(path|circle|rect|ellipse|line|polyline|polygon)[^>]*)/g, 
-                    `$1 stroke="${iconColor}" stroke-width="${strokeWidth}" stroke-linecap="${strokeLinecap}" stroke-linejoin="round" fill="none"`
+                    `$1 stroke="${iconColor}" stroke-width="${adjustedStrokeWidth}" stroke-linecap="${strokeLinecap}" stroke-linejoin="round" fill="none"`
                 );
                 
                 iconContent = `
@@ -646,7 +655,11 @@
                     </svg>
                 `;
             } else {
-                // For Lucide icons, get the path content and create SVG
+                // For Lucide icons, calculate adjusted stroke width based on 24x24 viewBox
+                const baseLucideSize = 24;
+                const scaleFactor = iconSize / baseLucideSize;
+                const adjustedStrokeWidth = strokeWidth / scaleFactor;
+                
                 const pathContent = getLucideIconSvg(currentIcon);
                 const centerX = iconX + iconSize / 2;
                 const centerY = iconY + iconSize / 2;
@@ -658,7 +671,7 @@
                          viewBox="0 0 24 24"
                          fill="none"
                          stroke="${iconColor}"
-                         stroke-width="${strokeWidth}"
+                         stroke-width="${adjustedStrokeWidth}"
                          stroke-linecap="${strokeLinecap}"
                          stroke-linejoin="round"
                          ${rotationTransform ? `transform="${rotationTransform}"` : ''}
