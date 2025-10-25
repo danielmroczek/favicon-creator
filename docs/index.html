@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0idXJsKCNncmFkaWVudCkiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZXNtb2tlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtMyA5IDktNyA5IDd2MTFhMiAyIDAgMCAxLTIgMkg1YTIgMiAwIDAgMS0yLTJaIi8+CjxwYXRoIGQ9Im05IDIyVjEyaDZWMjIiLz4KPC9zdmc+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50IiB4MT0iMTAwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzNiODJmNiIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjVjZjYiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K" type="image/svg+xml" id="dynamic-favicon">
 </head>
 <body>
-    <div class="container">
+    <div class="container" x-data="faviconCreator()">
         <header class="header">
             <h1>SVG Favicon Generator</h1>
             <p>Create beautiful SVG favicons with gradients and custom icons</p>
@@ -18,23 +18,12 @@
         <div class="main-content">
             <div class="preview-section">
                 <div class="preview-container">
-                    <svg id="preview-svg" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="gradient" x1="100%" y1="0%" x2="0%" y2="100%">
-                                <stop stop-color="#3b82f6"/>
-                                <stop offset="1" stop-color="#8b5cf6"/>
-                            </linearGradient>
-                        </defs>
-                        <rect width="32" height="32" rx="4" fill="url(#gradient)"/>
-                        <svg x="8" y="8" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="whitesmoke" stroke-width="2">
-                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <path d="m9 22V12h6V22"/>
-                        </svg>
+                    <svg id="preview-svg" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" x-html="previewSvg">
                     </svg>
                 </div>
                 
                 <div class="download-section">
-                    <button id="download-btn" class="download-button">
+                    <button @click="downloadFavicon" class="download-button">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                             <polyline points="7,10 12,15 17,10"/>
@@ -50,47 +39,60 @@
                     <h3>Background</h3>
                     <div class="color-input-group">
                         <div class="color-input">
-                            <input type="color" id="color1" value="#3b82f6">
-                            <label for="color1">Start Color</label>
+                            <input type="color" x-model="color1">
+                            <label>Start Color</label>
                         </div>
                         <div class="color-input">
-                            <input type="color" id="color2" value="#8b5cf6">
-                            <label for="color2">End Color</label>
+                            <input type="color" x-model="color2">
+                            <label>End Color</label>
                         </div>
                     </div>
                     <div class="range-group" style="margin-top: 1rem;">
-                        <label for="gradient-angle">Gradient Angle</label>
-                        <input type="range" id="gradient-angle" min="0" max="360" value="315">
-                        <span class="range-value" id="angle-value">315°</span>
+                        <label>Gradient Angle</label>
+                        <input type="range" x-model.number="gradientAngle" min="0" max="360">
+                        <span class="range-value" x-text="gradientAngle + '°'"></span>
                     </div>
                     <div class="range-group">
-                        <label for="border-radius">Border Radius</label>
-                        <input type="range" id="border-radius" min="0" max="16" value="4">
-                        <span class="range-value" id="radius-value">4</span>
+                        <label>Border Radius</label>
+                        <input type="range" x-model.number="borderRadius" min="0" max="16">
+                        <span class="range-value" x-text="borderRadius"></span>
                     </div>
                 </section>
                 
                 <section class="control-group">
                     <h3>Icon</h3>
                     <div class="icon-search">
-                        <input type="text" id="icon-search" placeholder="Search all Lucide icons..." style="margin-bottom: 1rem;">
-                        <div class="icon-grid" id="icon-grid"></div>
+                        <input type="text" x-model="iconSearch" placeholder="Search all Lucide icons..." style="margin-bottom: 1rem;">
+                        <div class="icon-grid" id="icon-grid">
+                            <template x-for="iconName in displayedIcons" :key="iconName">
+                                <div class="icon-item" 
+                                     :class="{ 'selected': currentIcon === iconName && !customIconSvg }"
+                                     @click="selectIcon(iconName)"
+                                     x-html="getIconHtml(iconName)">
+                                </div>
+                            </template>
+                            <div x-show="displayedIcons.length === 0" style="grid-column: 1 / -1; text-align: center; padding: 1rem; color: #666;">
+                                No icons found
+                            </div>
+                            <div x-show="displayedIcons.length > 100" style="grid-column: 1 / -1; text-align: center; padding: 0.5rem; color: #666; font-size: 0.8rem;" x-text="`Showing ${displayedIcons.length} icons`">
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="color-input">
-                        <input type="color" id="icon-color" value="#f5f5f5">
-                        <label for="icon-color">Icon Color</label>
+                        <input type="color" x-model="iconColor">
+                        <label>Icon Color</label>
                     </div>
                     
                     <div class="range-group" style="margin-top: 1rem;">
-                        <label for="stroke-width">Stroke Width</label>
-                        <input type="range" id="stroke-width" min="0.5" max="4" step="0.5" value="2">
-                        <span class="range-value" id="stroke-value">2</span>
+                        <label>Stroke Width</label>
+                        <input type="range" x-model.number="strokeWidth" min="0.5" max="4" step="0.5">
+                        <span class="range-value" x-text="strokeWidth"></span>
                     </div>
                     
                     <div style="margin-top: 1rem;">
-                        <label for="stroke-linecap">Stroke Line Cap</label>
-                        <select id="stroke-linecap" style="width: 100%; margin-top: 0.5rem;">
+                        <label>Stroke Line Cap</label>
+                        <select x-model="strokeLinecap" style="width: 100%; margin-top: 0.5rem;">
                             <option value="round">Round</option>
                             <option value="square">Square</option>
                             <option value="butt">Butt</option>
@@ -102,33 +104,37 @@
                     <h3>Icon Position, Size & Rotation</h3>
                     <div class="position-controls">
                         <div class="range-group">
-                            <label for="icon-x">X Position</label>
-                            <input type="range" id="icon-x" min="0" max="32" value="5">
-                            <span class="range-value" id="x-value">5</span>
+                            <label>X Position</label>
+                            <input type="range" x-model.number="iconX" min="0" max="32">
+                            <span class="range-value" x-text="iconX"></span>
                         </div>
                         <div class="range-group">
-                            <label for="icon-y">Y Position</label>
-                            <input type="range" id="icon-y" min="0" max="32" value="5">
-                            <span class="range-value" id="y-value">5</span>
+                            <label>Y Position</label>
+                            <input type="range" x-model.number="iconY" min="0" max="32">
+                            <span class="range-value" x-text="iconY"></span>
                         </div>
                     </div>
                     <div class="range-group">
-                        <label for="icon-size">Icon Size</label>
-                        <input type="range" id="icon-size" min="4" max="28" value="22">
-                        <span class="range-value" id="size-value">22</span>
+                        <label>Icon Size</label>
+                        <input type="range" x-model.number="iconSize" min="4" max="28">
+                        <span class="range-value" x-text="iconSize"></span>
                     </div>
                     <div class="range-group">
-                        <label for="icon-rotation">Rotation</label>
-                        <input type="range" id="icon-rotation" min="0" max="360" value="0">
-                        <span class="range-value" id="rotation-value">0°</span>
+                        <label>Rotation</label>
+                        <input type="range" x-model.number="iconRotation" min="0" max="360">
+                        <span class="range-value" x-text="iconRotation + '°'"></span>
                     </div>
-                    <button id="center-icon" class="center-button">Center Icon</button>
+                    <button @click="centerIcon" class="center-button">Center Icon</button>
                 </section>
                 
                 <section class="control-group">
                     <h3>Custom Icon Upload</h3>
-                    <div class="upload-area" id="upload-area">
-                        <input type="file" id="file-input" accept=".svg" class="hidden">
+                    <div class="upload-area" 
+                         @click="$refs.fileInput.click()"
+                         @dragover.prevent="$el.classList.add('dragover')"
+                         @dragleave="$el.classList.remove('dragover')"
+                         @drop.prevent="handleFileDrop($event)">
+                        <input type="file" x-ref="fileInput" @change="handleFileUpload($event)" accept=".svg" class="hidden">
                         <p>Click or drag to upload custom SVG icon</p>
                         <small>Only SVG files with path elements supported</small>
                     </div>
@@ -139,6 +145,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/svgo@3.0.2/dist/svgo.browser.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

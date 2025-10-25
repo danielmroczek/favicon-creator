@@ -38,8 +38,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- Built with vanilla JavaScript - zero build process, zero dependencies
+- Built with **[Alpine.js](https://alpinejs.dev/)** - Lightweight reactive framework for modern UIs
 - **[Pico CSS](https://picocss.com/)** - Minimal CSS framework for clean UI
 - **[Lucide Icons](https://lucide.dev/)** - Beautiful, consistent icon library (1000+ icons)
 - **[SVGO](https://github.com/svg/svgo)** - SVG optimization for smaller file sizes
+- Zero build process - pure JavaScript with Alpine.js for instant development
 - Uses SVG for high-quality, scalable favicons that work across all browsers
