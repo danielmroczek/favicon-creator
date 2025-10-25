@@ -36,46 +36,78 @@ const sizeValue = document.getElementById('size-value');
 const strokeValue = document.getElementById('stroke-value');
 const rotationValue = document.getElementById('rotation-value');
 
-// Get Lucide icon SVG content from CDN
-async function getLucideIconSvg(iconName) {
+// Get Lucide icon SVG content from the loaded library (instant, no HTTP request)
+function getLucideIconSvg(iconName) {
     try {
-        const response = await fetch(`https://unpkg.com/lucide-static/icons/${iconName}.svg`);
-        if (!response.ok) {
-            throw new Error(`Icon ${iconName} not found`);
+        // Check if lucide library is loaded
+        if (typeof lucide === 'undefined') {
+            console.warn('Lucide library not loaded');
+            return '<circle cx="12" cy="12" r="10"/>';
         }
-        const svgText = await response.text();
-        // Extract just the inner content (paths, circles, etc.)
-        const match = svgText.match(/<svg[^>]*>([\s\S]*?)<\/svg>/);
-        return match ? match[1] : '<circle cx="12" cy="12" r="10"/>';
+        
+        // Convert kebab-case to PascalCase (e.g., 'arrow-right' -> 'ArrowRight')
+        const pascalName = iconName
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join('');
+        
+        // Get icon constructor from lucide
+        const IconConstructor = lucide[pascalName];
+        
+        if (!IconConstructor) {
+            console.warn(`Icon ${iconName} (${pascalName}) not found in Lucide library`);
+            return '<circle cx="12" cy="12" r="10"/>';
+        }
+        
+        // Create a temporary container to render the icon
+        const tempDiv = document.createElement('div');
+        
+        // Use lucide.createElement to create the icon element
+        const iconElement = lucide.createElement(IconConstructor);
+        tempDiv.appendChild(iconElement);
+        
+        // Get the SVG element and extract its inner HTML
+        const svgElement = tempDiv.querySelector('svg');
+        if (svgElement) {
+            return svgElement.innerHTML;
+        }
+        
+        return '<circle cx="12" cy="12" r="10"/>';
     } catch (error) {
         console.warn(`Failed to load icon ${iconName}:`, error);
         return '<circle cx="12" cy="12" r="10"/>';
     }
 }
 
-// Get all available Lucide icons
-async function getAllLucideIcons() {
+// Get all available Lucide icons from the loaded library (instant)
+function getAllLucideIcons() {
     if (allLucideIcons.length > 0) {
         return allLucideIcons; // Return cached list
     }
     
     try {
-        // Fetch the icon list from Lucide's package.json or a known endpoint
-        const response = await fetch('https://api.github.com/repos/lucide-icons/lucide/contents/icons');
-        if (!response.ok) {
-            throw new Error('Failed to fetch icon list');
+        // Check if lucide library is loaded
+        if (typeof lucide === 'undefined') {
+            console.warn('Lucide library not loaded, using popular icons only');
+            return popularIcons;
         }
-        const files = await response.json();
         
-        // Extract icon names (remove .svg extension)
-        allLucideIcons = files
-            .filter(file => file.name.endsWith('.svg'))
-            .map(file => file.name.replace('.svg', ''))
+        // Get all icon names from lucide object (exclude non-icon properties)
+        const excludedProps = ['createElement', 'icons', 'createIcons', 'default'];
+        allLucideIcons = Object.keys(lucide)
+            .filter(key => !excludedProps.includes(key) && typeof lucide[key] === 'object')
+            .map(pascalName => {
+                // Convert PascalCase to kebab-case (e.g., 'ArrowRight' -> 'arrow-right')
+                return pascalName
+                    .replace(/([A-Z])/g, '-$1')
+                    .toLowerCase()
+                    .replace(/^-/, ''); // Remove leading dash
+            })
             .sort();
         
         return allLucideIcons;
     } catch (error) {
-        console.warn('Failed to fetch all icons, using popular icons only:', error);
+        console.warn('Failed to get icon list, using popular icons only:', error);
         return popularIcons;
     }
 }
@@ -104,19 +136,18 @@ centerIconBtn.addEventListener('click', () => {
 });
 
 // Initialize icon grid function
-async function initIconGrid() {
+function initIconGrid() {
     iconGrid.innerHTML = '<div style="text-align: center; padding: 1rem; color: #666;">Loading icons...</div>';
     
     try {
-        // Preload all icons list in background
-        getAllLucideIcons();
+        // Get all icons list (instant, from loaded library)
+        const allIcons = getAllLucideIcons();
         
-        // Show popular icons first
+        // Show popular icons first (create all immediately)
         iconGrid.innerHTML = '';
-        for (let i = 0; i < popularIcons.length; i++) {
-            const iconName = popularIcons[i];
-            await createIconElement(iconName, i === 0);
-        }
+        popularIcons.forEach((iconName, index) => {
+            createIconElement(iconName, index === 0);
+        });
     } catch (error) {
         console.error('Failed to initialize icon grid:', error);
         iconGrid.innerHTML = '<div style="text-align: center; padding: 1rem; color: #666;">Failed to load icons</div>';
@@ -126,7 +157,7 @@ async function initIconGrid() {
 let searchTimeout;
 
 // Search icons
-iconSearchInput.addEventListener('input', async (e) => {
+iconSearchInput.addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase().trim();
     
     // Clear previous timeout
@@ -135,14 +166,13 @@ iconSearchInput.addEventListener('input', async (e) => {
     }
     
     // Debounce the search
-    searchTimeout = setTimeout(async () => {
+    searchTimeout = setTimeout(() => {
         if (searchTerm === '') {
             // Show popular icons when search is empty
             iconGrid.innerHTML = '';
-            for (let i = 0; i < popularIcons.length; i++) {
-                const iconName = popularIcons[i];
-                await createIconElement(iconName, i === 0);
-            }
+            popularIcons.forEach((iconName, index) => {
+                createIconElement(iconName, index === 0);
+            });
             return;
         }
         
@@ -150,7 +180,7 @@ iconSearchInput.addEventListener('input', async (e) => {
         iconGrid.innerHTML = '<div style="text-align: center; padding: 1rem; color: #666;">Searching...</div>';
         
         try {
-            const allIcons = await getAllLucideIcons();
+            const allIcons = getAllLucideIcons();
             const filteredIcons = allIcons.filter(iconName => 
                 iconName.toLowerCase().includes(searchTerm)
             );
@@ -162,19 +192,16 @@ iconSearchInput.addEventListener('input', async (e) => {
                 return;
             }
             
-            // Limit results to prevent UI lag
-            const maxResults = 50;
-            const iconsToShow = filteredIcons.slice(0, maxResults);
+            // Show all results without limit (instant with in-memory icons)
+            filteredIcons.forEach((iconName) => {
+                createIconElement(iconName, false);
+            });
             
-            for (const iconName of iconsToShow) {
-                await createIconElement(iconName, false);
-            }
-            
-            if (filteredIcons.length > maxResults) {
-                const moreDiv = document.createElement('div');
-                moreDiv.style.cssText = 'text-align: center; padding: 0.5rem; color: #666; font-size: 0.8rem;';
-                moreDiv.textContent = `+${filteredIcons.length - maxResults} more icons...`;
-                iconGrid.appendChild(moreDiv);
+            if (filteredIcons.length > 100) {
+                const infoDiv = document.createElement('div');
+                infoDiv.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 0.5rem; color: #666; font-size: 0.8rem;';
+                infoDiv.textContent = `Showing ${filteredIcons.length} icons`;
+                iconGrid.appendChild(infoDiv);
             }
         } catch (error) {
             console.error('Search failed:', error);
@@ -183,8 +210,8 @@ iconSearchInput.addEventListener('input', async (e) => {
     }, 300); // 300ms debounce
 });
 
-// Helper function to create icon elements
-async function createIconElement(iconName, isSelected = false) {
+// Helper function to create icon elements (instant, no async needed)
+function createIconElement(iconName, isSelected = false) {
     const iconElement = document.createElement('div');
     iconElement.className = 'icon-item';
     if (isSelected) iconElement.classList.add('selected');
@@ -200,12 +227,9 @@ async function createIconElement(iconName, isSelected = false) {
     svgWrapper.setAttribute('stroke-linecap', 'round');
     svgWrapper.setAttribute('stroke-linejoin', 'round');
     
-    try {
-        svgWrapper.innerHTML = await getLucideIconSvg(iconName);
-    } catch (error) {
-        // Fallback for failed icons
-        svgWrapper.innerHTML = '<circle cx="12" cy="12" r="10"/>';
-    }
+    // Load SVG content instantly from in-memory library
+    const svgContent = getLucideIconSvg(iconName);
+    svgWrapper.innerHTML = svgContent;
     
     iconElement.appendChild(svgWrapper);
     
@@ -221,7 +245,7 @@ async function createIconElement(iconName, isSelected = false) {
 }
 
 // Update preview
-async function updatePreview() {
+function updatePreview() {
     const angle = parseInt(gradientAngleInput.value);
     const radius = parseInt(borderRadiusInput.value);
     const color1 = color1Input.value;
@@ -295,7 +319,7 @@ async function updatePreview() {
         const scaleFactor = iconSize / baseLucideSize;
         const adjustedStrokeWidth = strokeWidth / scaleFactor;
         
-        const pathContent = await getLucideIconSvg(currentIcon);
+        const pathContent = getLucideIconSvg(currentIcon);
         const centerX = iconX + iconSize / 2;
         const centerY = iconY + iconSize / 2;
         const rotationTransform = iconRotation !== 0 ? `rotate(${iconRotation} ${centerX} ${centerY})` : '';
@@ -473,8 +497,8 @@ downloadBtn.addEventListener('click', async () => {
 });
 
 // Initialize
-(async () => {
-    await initIconGrid();
-    await updatePreview();
+(() => {
+    initIconGrid();
+    updatePreview();
     updateValueDisplays();
 })();

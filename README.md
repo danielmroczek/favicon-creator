@@ -6,14 +6,14 @@ A simple, browser-based tool for creating custom favicons for your websites. Des
 
 - **Interactive Preview**: See your favicon changes in real-time
 - **Color Customization**: Set primary and background colors with an intuitive color picker
-- **Icon Library**: Choose from a selection of pre-made icons
+- **Icon Library**: Instant search through 1000+ Lucide icons with zero loading time
 - **Custom SVG Support**: Upload your own SVG files to use as favicons
 - **Size & Position Controls**: Adjust the size and position of your icon elements
-- **One-Click Download**: Easily export your favicon in multiple formats
+- **One-Click Download**: Easily export your favicon in SVG format with automatic optimization
 
 ## Demo
 
-Visit the [live demo](https://yourusername.github.io/favicon-creator-1/) to try it out!
+Visit the [live demo](https://danielmroczek.github.io/favicon-creator/) to try it out!
 
 ## Usage
 
@@ -38,5 +38,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- Built using vanilla JavaScript, HTML, and CSS
-- Uses SVG for high-quality, scalable favicons
+- Built with vanilla JavaScript - zero build process, zero dependencies
+- **[Pico CSS](https://picocss.com/)** - Minimal CSS framework for clean UI
+- **[Lucide Icons](https://lucide.dev/)** - Beautiful, consistent icon library (1000+ icons)
+- **[SVGO](https://github.com/svg/svgo)** - SVG optimization for smaller file sizes
+- Uses SVG for high-quality, scalable favicons that work across all browsers
