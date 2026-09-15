@@ -41,9 +41,17 @@ body {
 }
 
 #preview-svg {
-    width: 10rem;
-    height: 10rem;
-    /* border-radius: 0.5rem; */
+    width: var(--preview-size);
+    height: var(--preview-size);
+}
+
+/* The preview div receives the canonical 32×32 SVG via x-html. Scale it up
+   purely with CSS — the generated markup must NOT be resized (the preview
+   renders the byte-identical string the download writes). */
+#preview-svg svg {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 .color-input-group {

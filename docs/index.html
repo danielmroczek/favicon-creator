@@ -18,8 +18,9 @@
         <div class="main-content">
             <div class="preview-section">
                 <div class="preview-container">
-                    <svg id="preview-svg" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" x-html="previewSvg">
-                    </svg>
+                    <!-- The preview IS the download: previewSvg is the exact
+                         canonical string emitted by lib/favicon.js. -->
+                    <div id="preview-svg" x-html="previewSvg"></div>
                 </div>
                 
                 <div class="download-section">
@@ -66,7 +67,7 @@
                         <div class="icon-grid" id="icon-grid">
                             <template x-for="iconName in displayedIcons" :key="iconName">
                                 <div class="icon-item" 
-                                     :class="{ 'selected': currentIcon === iconName && !customIconSvg }"
+                                     :class="{ 'selected': currentIcon === iconName && !customIconSubpaths }"
                                      @click="selectIcon(iconName)"
                                      x-html="getIconHtml(iconName)">
                                 </div>
@@ -143,7 +144,11 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/svgo@3.0.2/dist/svgo.browser.js"></script>
+    <!-- Vendor libraries. svgpath is a pre-bundled IIFE (no UMD build exists
+         upstream) that bakes transforms into path data — see lib/ header. -->
+    <script src="svgpath.min.js"></script>
+    <script src="lib/path-lib.js"></script>
+    <script src="lib/favicon.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="script.js"></script>

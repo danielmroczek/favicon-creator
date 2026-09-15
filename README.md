@@ -9,7 +9,11 @@ A simple, browser-based tool for creating custom favicons for your websites. Des
 - **Icon Library**: Instant search through 1000+ Lucide icons with zero loading time
 - **Custom SVG Support**: Upload your own SVG files to use as favicons
 - **Size & Position Controls**: Adjust the size and position of your icon elements
-- **One-Click Download**: Easily export your favicon in SVG format with automatic optimization
+- **Canonical Output**: Emits favicons that conform to the canonical favicon format
+  (see [danielmroczek.github.io/docs/favicon-format.md](https://github.com/danielmroczek/danielmroczek.github.io/blob/main/docs/favicon-format.md))
+- **Single Icon Path**: Multi-path icons (including all Lucide icons) are automatically
+  flattened into one `<path id="icon">` element, so portfolio generators can handle them
+  as a single shape
 
 ## Demo
 
@@ -41,6 +45,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Built with **[Alpine.js](https://alpinejs.dev/)** - Lightweight reactive framework for modern UIs
 - **[Pico CSS](https://picocss.com/)** - Minimal CSS framework for clean UI
 - **[Lucide Icons](https://lucide.dev/)** - Beautiful, consistent icon library (1000+ icons)
-- **[SVGO](https://github.com/svg/svgo)** - SVG optimization for smaller file sizes
+- **[svgpath](https://github.com/fontello/svgpath)** - Transforms baked into path data (pre-bundled IIFE in `docs/svgpath.min.js`)
 - Zero build process - pure JavaScript with Alpine.js for instant development
+- Output is the canonical favicon format — validate downloads with the portfolio's
+  [`check-favicon.mjs`](https://github.com/danielmroczek/danielmroczek.github.io/blob/main/scripts/check-favicon.mjs)
 - Uses SVG for high-quality, scalable favicons that work across all browsers

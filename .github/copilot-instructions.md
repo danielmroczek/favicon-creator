@@ -9,7 +9,8 @@ Browser-based SVG favicon generator built with **Alpine.js** and vanilla JavaScr
 - **`docs/index.html`**: Main UI structure using Pico CSS framework with Alpine.js directives
 - **`docs/script.js`**: Alpine.js component (`faviconCreator()`) with reactive state and methods
 - **`docs/styles.css`**: Custom styles extending Pico CSS base
-- **`docs/script-vanilla.js`**: Backup of original vanilla JS implementation (for reference)
+- **`docs/lib/path-lib.js`**: Pure path helpers — shape→path conversion, transform parsing, matrix baking (via svgpath)
+- **`docs/lib/favicon.js`**: Canonical favicon string builder (`buildFaviconSvg`) — the single seam used by BOTH preview and download
 
 ### Key Design Patterns
 
@@ -20,11 +21,13 @@ Browser-based SVG favicon generator built with **Alpine.js** and vanilla JavaScr
 - `$watch` automatically updates favicon when previewSvg changes
 - No manual DOM manipulation - Alpine.js handles all updates
 
-**2. SVG Generation & Manipulation**
-- Preview SVG dynamically generated via `previewSvg` computed property
-- Gradient angles calculated via trigonometry: `(angle - 90) * Math.PI / 180`
-- Custom uploaded SVGs are parsed, stripped of fills, and re-styled with stroke properties
-- SVG content rendered reactively using `x-html="previewSvg"` directive
+**2. Canonical SVG Generation (see ADR 0004 in danielmroczek.github.io)**
+- `previewSvg` computed property delegates to `buildFaviconSvg()` in `lib/favicon.js`
+- Output is a canonical favicon: 32×32 root, one `<linearGradient>`, background `<rect>`, and a single `<path id="icon">` with ALL transforms baked into path data (no `transform` attributes — the format forbids them)
+- Stroke-based Lucide icons merge into ONE path (subpaths concatenated in `d`); filled shapes stay separate so merging can't change their silhouette
+- The preview renders the exact string the download writes — they can never drift
+- Canonical assembly lives in `lib/` — `script.js` only collects and classifies shapes
+- Transform baking uses the vendored `svgpath.min.js` IIFE (upstream has no UMD build, so it cannot be CDN-loaded)
 
 **3. Icon System (Lucide Integration)**
 - Uses Lucide UMD library loaded from `https://unpkg.com/lucide@latest/dist/umd/lucide.js`
@@ -63,7 +66,7 @@ Browser-based SVG favicon generator built with **Alpine.js** and vanilla JavaScr
 ### Local Development
 - **No build step required** - open `docs/index.html` directly in browser
 - For testing: Use Python server `python -m http.server 8000` or VS Code Live Server extension
-- All external dependencies loaded via CDN (Pico CSS, SVGO, Lucide, Alpine.js)
+- External dependencies via CDN (Pico CSS, Lucide, Alpine.js); svgpath is vendored as an IIFE at `docs/svgpath.min.js` (no upstream UMD build exists, so it cannot be CDN-loaded). SVGO was removed — its `removeViewBox`/`removeDimensions` plugins strip attributes the canonical favicon format requires (ADR 0004 in danielmroczek.github.io).
 - Alpine.js devtools available in browser for debugging reactive state
 
 ### Deployment
@@ -101,11 +104,11 @@ Browser-based SVG favicon generator built with **Alpine.js** and vanilla JavaScr
 ### SVG Construction
 - Use template literals with proper XML namespacing
 - Always include `xmlns="http://www.w3.org/2000/svg"` for embedded SVGs
-- Rotation via transform attribute: `transform="rotate(${angle} ${centerX} ${centerY})"`
+- NEVER emit `transform` attributes — all placement/rotation/scale is baked into path coordinates via `lib/` (canonical format rule 6)
 
 ### State Management
-- Current icon state: `currentIcon` (string) or `customIconSvg` (object)
-- `customIconSvg = null` when switching back to Lucide icons
+- Current icon state: `currentIcon` (string) or `customIconSubpaths` (object with `{strokeSubpaths, fillSubpaths}`)
+- `customIconSubpaths = null` when switching back to Lucide icons
 - All UI controls automatically trigger preview updates via Alpine.js reactivity
 
 ## External Dependencies
@@ -113,9 +116,10 @@ Browser-based SVG favicon generator built with **Alpine.js** and vanilla JavaScr
 ```javascript
 // CDN-loaded libraries (defined in index.html):
 - Pico CSS v2: Base styling framework
-- SVGO v3: SVG optimization for download (with fallback if fails)
 - Lucide UMD: Icon system (all icons loaded in-memory)
 - Alpine.js 3.x: Reactive framework for UI and state management
+// Vendored (docs/svgpath.min.js — no upstream UMD build):
+- svgpath: bakes transform matrices into path data
 ```
 
 ## Common Tasks
