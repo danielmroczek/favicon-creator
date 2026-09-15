@@ -38,16 +38,6 @@
             <article class="controls-section">
                 <section class="control-group">
                     <h3>Background</h3>
-                    <div class="color-input-group">
-                        <div class="color-input">
-                            <input type="color" x-model="color1">
-                            <label>Start Color</label>
-                        </div>
-                        <div class="color-input">
-                            <input type="color" x-model="color2">
-                            <label>End Color</label>
-                        </div>
-                    </div>
                     <div class="range-group" style="margin-top: 1rem;">
                         <label>Gradient Angle</label>
                         <input type="range" x-model.number="gradientAngle" min="0" max="360">
@@ -57,6 +47,44 @@
                         <label>Border Radius</label>
                         <input type="range" x-model.number="borderRadius" min="0" max="16">
                         <span class="range-value" x-text="borderRadius"></span>
+                    </div>
+                    <button @click="randomPalette" class="center-button">🎲 Random palette</button>
+                </section>
+
+                <section class="control-group">
+                    <h3>Colors</h3>
+                    <!-- Color Targets: exactly one is Active Target (ring);
+                         the shared grid writes to it. -->
+                    <div class="color-targets">
+                        <template x-for="targetName in ['color1', 'color2', 'iconColor']" :key="targetName">
+                            <div class="color-target"
+                                 :class="{ active: activeTarget === targetName }"
+                                 @click="activeTarget = targetName">
+                                <span class="color-swatch-preview" :style="`background: ${this[targetName]}`"></span>
+                                <span x-text="targetLabel(targetName)"></span>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Shared Swatch Grid: rows = hues, columns = shades
+                         100–900, Neutral Extras first. -->
+                    <div class="swatch-grid" id="swatch-grid">
+                        <template x-for="extra in paletteLib.neutralExtras" :key="extra.name">
+                            <div class="swatch neutral"
+                                 :class="{ selected: [color1, color2, iconColor].includes(extra.hex) }"
+                                 :style="`background: ${extra.hex}`"
+                                 :title="extra.name"
+                                 @click="selectSwatch(extra.hex)"></div>
+                        </template>
+                        <template x-for="row in swatchGrid" :key="row.hue">
+                            <template x-for="s in row.shades" :key="row.hue + s.shade">
+                                <div class="swatch"
+                                     :class="{ selected: [color1, color2, iconColor].includes(s.hex) }"
+                                     :style="`background: ${s.hex}`"
+                                     :title="`${row.hue}-${s.shade}`"
+                                     @click="selectSwatch(s.hex)"></div>
+                            </template>
+                        </template>
                     </div>
                 </section>
                 
@@ -78,11 +106,6 @@
                             <div x-show="displayedIcons.length > 100" style="grid-column: 1 / -1; text-align: center; padding: 0.5rem; color: #666; font-size: 0.8rem;" x-text="`Showing ${displayedIcons.length} icons`">
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="color-input">
-                        <input type="color" x-model="iconColor">
-                        <label>Icon Color</label>
                     </div>
                     
                     <div class="range-group" style="margin-top: 1rem;">
@@ -147,6 +170,7 @@
     <!-- Vendor libraries. svgpath is a pre-bundled IIFE (no UMD build exists
          upstream) that bakes transforms into path data — see lib/ header. -->
     <script src="svgpath.min.js"></script>
+    <script src="lib/material-colors.js"></script>
     <script src="lib/path-lib.js"></script>
     <script src="lib/favicon.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>

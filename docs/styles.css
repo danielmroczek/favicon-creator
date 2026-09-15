@@ -60,10 +60,48 @@ body {
     gap: 1rem;
 }
 
-.color-input {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+.color-swatch-preview {
+    width: 20px;
+    height: 20px;
+    border-radius: 0.25rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+}
+
+.swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 2px;
+    max-height: 240px;
+    overflow-y: auto;
+    border: 1px solid var(--pico-border-color);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    background: var(--pico-background-color);
+}
+
+.swatch {
+    aspect-ratio: 1;
+    border-radius: 0.2rem;
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.swatch:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 2px var(--pico-primary-500);
+}
+
+.swatch.selected {
+    box-shadow: 0 0 0 2px var(--pico-primary-500);
+    border-radius: 0.3rem;
+}
+
+.swatch.neutral {
+    /* Neutral Extras (white/black) — the first two cells, outside the
+       formal Material palette. */
+    border: 1px dashed var(--pico-border-color);
 }
 
 .color-input input[type="color"] {

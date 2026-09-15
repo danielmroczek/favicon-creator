@@ -6,12 +6,19 @@
 // them into subpath lists, and delegates. Preview and download render THE
 // SAME STRING, so they can never drift apart.
 function faviconCreator() {
+    // Material shade axis for the color grid — 100–900 only (no 50,
+    // no a100–a700 accents). See CONTEXT.md ("Shade").
+    const SHADES = [100, 200, 300, 400, 500, 600, 700, 800, 900];
+    // Palette Random draws its background pair from window.materialColors
+    // (vendored lib/material-colors.js, loaded before this script).
+    const palette = (typeof window !== 'undefined' && window.materialColors) || {};
+
     return {
-        color1: '#3b82f6',
-        color2: '#8b5cf6',
+        color1: '#2196f3',   // replaced by randomPalette() in init()
+        color2: '#1e88e5',
         gradientAngle: 315,
         borderRadius: 4,
-        iconColor: '#f5f5f5',
+        iconColor: '#ffffff',  // Neutral Extras white — never randomized
         strokeWidth: 2,
         strokeLinecap: 'round',
         iconX: 4,
@@ -23,6 +30,85 @@ function faviconCreator() {
         customIconSubpaths: null,
         allLucideIcons: [],
         popularIcons: ['house', 'heart', 'star', 'user', 'mail', 'phone', 'globe', 'settings'],
+        activeTarget: 'color1',
+        swatchGrid: [],       // built once in init() — see allLucideIcons pattern
+
+        /**
+         * Material-pattern color palette seam — see CONTEXT.md ("Color
+         * Target", "Swatch", "Neutral Extras", "Shade", "Palette Random").
+         * Pure helpers: no `this`, no DOM — tests run these in Node.
+         */
+        paletteLib: {
+            /** The two swatches outside the formal palette, shown first. */
+            neutralExtras: [
+                { name: 'white', hex: '#ffffff' },
+                { name: 'black', hex: '#000000' },
+            ],
+
+            /**
+             * Grid model: one row per hue, columns = shades 100–900.
+             * @param {object} palette key→hex map (vendored material colors)
+             */
+            buildGrid(palette) {
+                const rows = new Map();
+                for (const [key, hex] of Object.entries(palette)) {
+                    const m = key.match(/^(.*)-(\d+)$/);
+                    if (!m) continue;
+                    const [, hue, shadeStr] = m;
+                    const shade = parseInt(shadeStr, 10);
+                    if (!SHADES.includes(shade)) continue; // no 50, no accents
+                    if (!rows.has(hue)) rows.set(hue, []);
+                    rows.get(hue).push({ shade, hex });
+                }
+                return [...rows.keys()]
+                    .sort()
+                    .map((hue) => ({
+                        hue,
+                        shades: rows.get(hue).sort((a, b) => a.shade - b.shade),
+                    }));
+            },
+
+            /**
+             * Hue names with saturation (excludes grey/bluegrey) — the pool
+             * Palette Random draws from.
+             */
+            chromaticHues(palette) {
+                return [...new Set(Object.keys(palette)
+                    .filter((k) => /^.*-\d+$/.test(k))
+                    .map((k) => k.replace(/-\d+$/, '')))]
+                    .filter((hue) => hue !== 'grey' && hue !== 'bluegrey');
+            },
+
+            pick(entries) {
+                return entries[Math.floor(Math.random() * entries.length)];
+            },
+
+            /**
+             * Palette Random: same hue, start shade ± exactly TWO steps,
+             * direction drawn only from directions that stay within
+             * 100–900 (never clamped to a one-step). Returns the pair keys
+             * with resolved hexes. Icon Color is never randomized.
+             */
+            randomPair(palette) {
+                const hue = this.pick(this.chromaticHues(palette));
+                const shadeList = SHADES;
+                const idx = Math.floor(Math.random() * shadeList.length);
+                const shade = shadeList[idx];
+
+                const dirs = [];
+                if (idx + 2 < shadeList.length) dirs.push(+1);
+                if (idx - 2 >= 0) dirs.push(-1);
+                const dir = this.pick(dirs);
+                const endShade = shadeList[idx + dir * 2];
+
+                return {
+                    startKey: `${hue}-${shade}`,
+                    startHex: palette[`${hue}-${shade}`],
+                    endKey: `${hue}-${endShade}`,
+                    endHex: palette[`${hue}-${endShade}`],
+                };
+            },
+        },
 
         get displayedIcons() {
             const searchTerm = this.iconSearch.toLowerCase().trim();
@@ -59,7 +145,31 @@ function faviconCreator() {
 
         init() {
             this.getAllLucideIcons();
+            this.swatchGrid = this.paletteLib.buildGrid(palette);
             this.$watch('previewSvg', () => this.updateFavicon());
+            this.randomPalette();   // Palette Random defaults at load
+        },
+
+        targetLabel(targetName) {
+            return { color1: 'Start Color', color2: 'End Color', iconColor: 'Icon Color' }[targetName];
+        },
+
+        /**
+         * A swatch click: write the color to the Active Target.
+         */
+        selectSwatch(hex) {
+            this[this.activeTarget] = hex;
+        },
+
+        /**
+         * Palette Random (CONTEXT.md): randomize ONLY the background pair —
+         * same chromatic hue, end shade exactly two steps away, direction
+         * chosen from the allowed directions. Icon Color never changes.
+         */
+        randomPalette() {
+            const pair = this.paletteLib.randomPair(palette);
+            this.color1 = pair.startHex;
+            this.color2 = pair.endHex;
         },
 
         getLucideIconSvg(iconName) {
