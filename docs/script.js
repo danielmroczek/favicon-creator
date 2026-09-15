@@ -30,7 +30,7 @@ function faviconCreator() {
         customIconSubpaths: null,
         allLucideIcons: [],
         popularIcons: ['house', 'heart', 'star', 'user', 'mail', 'phone', 'globe', 'settings'],
-        activeTarget: 'color1',
+        activeTarget: null,   // null = mouse mode (default): the mouse button picks the target (left=Start, right=End, middle=Icon); click a target row to pin writes to it alone
         swatchGrid: [],       // built once in init() — see allLucideIcons pattern
 
         /**
@@ -154,11 +154,42 @@ function faviconCreator() {
             return { color1: 'Start Color', color2: 'End Color', iconColor: 'Icon Color' }[targetName];
         },
 
+        shortTargetLabel(targetName) {
+            return { color1: 'Start', color2: 'End', iconColor: 'Icon' }[targetName];
+        },
+
         /**
-         * A swatch click: write the color to the Active Target.
+         * Which targets currently use this hex? Returns letter codes
+         * for the swatch badges: S (Start), E (End), I (Icon).
          */
-        selectSwatch(hex) {
-            this[this.activeTarget] = hex;
+        swatchRoles(hex) {
+            const roles = [];
+            if (this.color1 === hex) roles.push('S');
+            if (this.color2 === hex) roles.push('E');
+            if (this.iconColor === hex) roles.push('I');
+            return roles;
+        },
+
+        /**
+         * Single-target mode: write the color to the Active Target.
+         * Mouse mode (activeTarget === null): the mouse button picks the
+         * target — left = Start, right = End, middle = Icon.
+         */
+        selectSwatch(hex, button = 0) {
+            if (this.activeTarget === null) {
+                const byButton = { 0: 'color1', 1: 'iconColor', 2: 'color2' };
+                this[byButton[button] || 'color1'] = hex;
+            } else {
+                this[this.activeTarget] = hex;
+            }
+        },
+
+        /**
+         * Clicking the Active Target again deselects it — back to
+         * all-three mouse mode (the default state on page load).
+         */
+        toggleTarget(targetName) {
+            this.activeTarget = (this.activeTarget === targetName) ? null : targetName;
         },
 
         /**

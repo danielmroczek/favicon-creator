@@ -60,12 +60,35 @@ body {
     gap: 1rem;
 }
 
-.color-swatch-preview {
-    width: 20px;
-    height: 20px;
-    border-radius: 0.25rem;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    flex-shrink: 0;
+/* Color Targets: the three rows sit side by side; the Active Target gets
+   the primary ring. Clicking a row makes it the active one. */
+.color-targets {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.color-target {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--pico-border-color);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-align: center;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.color-target.active {
+    border-color: var(--pico-primary, #01aaff);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--pico-primary, #01aaff) 25%, transparent);
+    background: color-mix(in srgb, var(--pico-primary, #01aaff) 10%, transparent);
 }
 
 .swatch-grid {
@@ -86,6 +109,22 @@ body {
     cursor: pointer;
     border: 1px solid rgba(0, 0, 0, 0.1);
     transition: transform 0.1s ease, box-shadow 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Role badge inside a swatch: S (Start), E (End), I (Icon) — shown when
+   the swatch's hex is assigned to one or more color targets. */
+.swatch-badge {
+    font-size: 0.55rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    color: #fff;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 0.9);
+    pointer-events: none;
+    user-select: none;
 }
 
 .swatch:hover {
@@ -99,7 +138,7 @@ body {
 }
 
 .swatch.neutral {
-    /* Neutral Extras (white/black) — the first two cells, outside the
+    /* Neutral Extras (white/black) — the last two cells, outside the
        formal Material palette. */
     border: 1px dashed var(--pico-border-color);
 }

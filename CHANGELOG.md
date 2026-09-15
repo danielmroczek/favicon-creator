@@ -16,6 +16,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - 🎲 Random palette button + randomized defaults: background pair is drawn
   from one chromatic hue, exactly two shade steps apart (direction limited
   to valid shades); Icon Color is never randomized.
+- Role badges on swatches: a swatch already assigned to a color target shows
+  a small `S` (Start), `E` (End) and/or `I` (Icon) letter.
+- **Mouse mode** (default on load): with no color target pinned, a swatch
+  click uses the mouse button to pick the target — left = Start, right =
+  End, middle = Icon. Pinned-mode (click a target row) still writes only to
+  that target; clicking it again releases back to mouse mode.
 
 ### Changed
 - **BREAKING**: Native free-form color pickers (`<input type="color">`) have
@@ -24,3 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Default `iconColor` changed from `#f5f5f5` to `#ffffff` (neutral white).
 - Default background colors are now randomized on every page load instead of
   fixed to blue/violet.
+- White/black neutral extras now appear **last** in the swatch grid (was
+  first).
+- Color target rows are compact side-by-side buttons labelled Start / End /
+  Icon; an active target is highlighted with the primary ring.

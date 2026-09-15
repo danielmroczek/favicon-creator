@@ -8,9 +8,17 @@ One of the three color destinations in the UI: **Start Color** (`color1`),
 one color, always chosen from the Material Palette or the Neutral Extras.
 
 ### Active Target
-The Color Target that the shared Swatch Grid currently writes to. Exactly one
-is active at a time; clicking a target's swatch makes it active (shown by a
-ring).
+The Color Target that the shared Swatch Grid currently writes to. Clicking a
+target's row makes it active (shown by a ring); clicking it again releases it.
+When **no** target is active (the default on page load), the grid runs in
+*mouse mode*: each swatch click targets a color by mouse button — left =
+Start Color, right = End Color, middle = Icon Color.
+
+### Role Badge
+The small letter(s) shown inside a Swatch that is already in use: `S`
+(Start Color), `E` (End Color), `I` (Icon Color). Letters are joined tightly
+(e.g. `SEI` when all three targets share one color) so the grid never
+reflows.
 
 ### Swatch
 A single square color cell in the grid. Its value comes either from the
@@ -19,7 +27,7 @@ the underlying name (e.g. `blue-500`).
 
 ### Neutral Extras
 White (`#ffffff`) and black (`#000000`) — the two swatches that sit outside
-the formal Material Palette, displayed first in the grid. Icon Color defaults
+the formal Material Palette, displayed last in the grid. Icon Color defaults
 to white.
 
 ### Shade

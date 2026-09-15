@@ -7,8 +7,10 @@ A simple, browser-based tool for creating custom favicons for your websites. Des
 - **Interactive Preview**: See your favicon changes in real-time
 - **Material Color Palette**: Pick colors from a swatch grid of the Material
   Colors palette (shades 100–900, no free-form hex entry), with white and black
-  as neutral extras. A 🎲 button randomizes the background pair within a single
-  hue, two shade steps apart; defaults are randomized on load
+  as neutral extras at the end. 🎲 randomizes the background pair within a single
+  hue, two shade steps apart. **Mouse mode** is the default: a swatch click
+  sets the target by mouse button (left = Start, right = End, middle = Icon);
+  click a target row to pin just that one, and click it again to release.
 - **Icon Library**: Instant search through 1000+ Lucide icons with zero loading time
 - **Custom SVG Support**: Upload your own SVG files to use as favicons
 - **Size & Position Controls**: Adjust the size and position of your icon elements
@@ -25,8 +27,11 @@ Visit the [live demo](https://danielmroczek.github.io/favicon-creator/) to try i
 ## Usage
 
 1. **Select an Icon**: Choose from the icon grid or upload your own SVG
-2. **Customize Colors**: Click a color target (Start / End / Icon), then pick
-  a swatch from the Material palette grid
+2. **Customize Colors**: Click a swatch in the Material palette grid. With no
+  target pinned (default) the mouse button picks the target — left = Start,
+  right = End, middle = Icon. Swatches already in use show a small `S`/`E`/`I`
+  badge. Click a target row (Start / End / Icon) to pin writes to that target;
+  click it again to release.
 3. **Adjust Positioning**: Use the controls to position and size your icon
 4. **Download**: Click the download button to get your favicon files
 

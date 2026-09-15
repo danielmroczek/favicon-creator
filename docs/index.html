@@ -37,58 +37,6 @@
             
             <article class="controls-section">
                 <section class="control-group">
-                    <h3>Background</h3>
-                    <div class="range-group" style="margin-top: 1rem;">
-                        <label>Gradient Angle</label>
-                        <input type="range" x-model.number="gradientAngle" min="0" max="360">
-                        <span class="range-value" x-text="gradientAngle + '°'"></span>
-                    </div>
-                    <div class="range-group">
-                        <label>Border Radius</label>
-                        <input type="range" x-model.number="borderRadius" min="0" max="16">
-                        <span class="range-value" x-text="borderRadius"></span>
-                    </div>
-                    <button @click="randomPalette" class="center-button">🎲 Random palette</button>
-                </section>
-
-                <section class="control-group">
-                    <h3>Colors</h3>
-                    <!-- Color Targets: exactly one is Active Target (ring);
-                         the shared grid writes to it. -->
-                    <div class="color-targets">
-                        <template x-for="targetName in ['color1', 'color2', 'iconColor']" :key="targetName">
-                            <div class="color-target"
-                                 :class="{ active: activeTarget === targetName }"
-                                 @click="activeTarget = targetName">
-                                <span class="color-swatch-preview" :style="`background: ${this[targetName]}`"></span>
-                                <span x-text="targetLabel(targetName)"></span>
-                            </div>
-                        </template>
-                    </div>
-
-                    <!-- Shared Swatch Grid: rows = hues, columns = shades
-                         100–900, Neutral Extras first. -->
-                    <div class="swatch-grid" id="swatch-grid">
-                        <template x-for="extra in paletteLib.neutralExtras" :key="extra.name">
-                            <div class="swatch neutral"
-                                 :class="{ selected: [color1, color2, iconColor].includes(extra.hex) }"
-                                 :style="`background: ${extra.hex}`"
-                                 :title="extra.name"
-                                 @click="selectSwatch(extra.hex)"></div>
-                        </template>
-                        <template x-for="row in swatchGrid" :key="row.hue">
-                            <template x-for="s in row.shades" :key="row.hue + s.shade">
-                                <div class="swatch"
-                                     :class="{ selected: [color1, color2, iconColor].includes(s.hex) }"
-                                     :style="`background: ${s.hex}`"
-                                     :title="`${row.hue}-${s.shade}`"
-                                     @click="selectSwatch(s.hex)"></div>
-                            </template>
-                        </template>
-                    </div>
-                </section>
-                
-                <section class="control-group">
                     <h3>Icon</h3>
                     <div class="icon-search">
                         <input type="text" x-model="iconSearch" placeholder="Search all Lucide icons..." style="margin-bottom: 1rem;">
@@ -107,25 +55,74 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="range-group" style="margin-top: 1rem;">
-                        <label>Stroke Width</label>
-                        <input type="range" x-model.number="strokeWidth" min="0.5" max="4" step="0.5">
-                        <span class="range-value" x-text="strokeWidth"></span>
+                </section>
+
+                <section class="control-group">
+                    <h3>Colors</h3>
+                    <!-- Color Targets: Active Target gets the ring; when
+                         none is active (default) a swatch click picks the
+                         target by mouse button (left=Start, right=End,
+                         middle=Icon). Click a target to pin it, click
+                         again to release back to mouse mode. -->
+                    <div class="color-targets">
+                        <template x-for="targetName in ['color1', 'color2', 'iconColor']" :key="targetName">
+                            <div class="color-target"
+                                 :class="{ active: activeTarget === targetName }"
+                                 @click="toggleTarget(targetName)">
+                                <span x-text="shortTargetLabel(targetName)"></span>
+                            </div>
+                        </template>
                     </div>
-                    
-                    <div style="margin-top: 1rem;">
-                        <label>Stroke Line Cap</label>
-                        <select x-model="strokeLinecap" style="width: 100%; margin-top: 0.5rem;">
-                            <option value="round">Round</option>
-                            <option value="square">Square</option>
-                            <option value="butt">Butt</option>
-                        </select>
+
+                    <!-- Shared Swatch Grid: rows = hues, columns = shades
+                         100–900, Neutral Extras last. -->
+                    <div class="swatch-grid" id="swatch-grid">
+                        <template x-for="row in swatchGrid" :key="row.hue">
+                            <template x-for="s in row.shades" :key="row.hue + s.shade">
+                                <div class="swatch"
+                                     :class="{ selected: [color1, color2, iconColor].includes(s.hex) }"
+                                     :style="`background: ${s.hex}`"
+                                     :title="`${row.hue}-${s.shade}`"
+                                     @mousedown="$event.preventDefault(); selectSwatch(s.hex, $event.button)"
+                                     @contextmenu.prevent>
+                                    <span class="swatch-badge"
+                                          x-show="swatchRoles(s.hex).length"
+                                          x-text="swatchRoles(s.hex).join('')"></span>
+                                </div>
+                            </template>
+                        </template>
+                        <template x-for="extra in paletteLib.neutralExtras" :key="extra.name">
+                            <div class="swatch neutral"
+                                 :class="{ selected: [color1, color2, iconColor].includes(extra.hex) }"
+                                 :style="`background: ${extra.hex}`"
+                                 :title="extra.name"
+                                 @mousedown="$event.preventDefault(); selectSwatch(extra.hex, $event.button)"
+                                 @contextmenu.prevent>
+                                <span class="swatch-badge"
+                                      x-show="swatchRoles(extra.hex).length"
+                                      x-text="swatchRoles(extra.hex).join('')"></span>
+                            </div>
+                        </template>
                     </div>
                 </section>
-                
+
                 <section class="control-group">
-                    <h3>Icon Position, Size & Rotation</h3>
+                    <h3>Background</h3>
+                    <div class="range-group" style="margin-top: 1rem;">
+                        <label>Gradient Angle</label>
+                        <input type="range" x-model.number="gradientAngle" min="0" max="360">
+                        <span class="range-value" x-text="gradientAngle + '°'"></span>
+                    </div>
+                    <div class="range-group">
+                        <label>Border Radius</label>
+                        <input type="range" x-model.number="borderRadius" min="0" max="16">
+                        <span class="range-value" x-text="borderRadius"></span>
+                    </div>
+                    <button @click="randomPalette" class="center-button">🎲 Random palette</button>
+                </section>
+
+                <section class="control-group">
+                    <h3>Icon options</h3>
                     <div class="position-controls">
                         <div class="range-group">
                             <label>X Position</label>
@@ -147,6 +144,19 @@
                         <label>Rotation</label>
                         <input type="range" x-model.number="iconRotation" min="0" max="360">
                         <span class="range-value" x-text="iconRotation + '°'"></span>
+                    </div>
+                    <div class="range-group">
+                        <label>Stroke Width</label>
+                        <input type="range" x-model.number="strokeWidth" min="0.5" max="4" step="0.5">
+                        <span class="range-value" x-text="strokeWidth"></span>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <label>Stroke Line Cap</label>
+                        <select x-model="strokeLinecap" style="width: 100%; margin-top: 0.5rem;">
+                            <option value="round">Round</option>
+                            <option value="square">Square</option>
+                            <option value="butt">Butt</option>
+                        </select>
                     </div>
                     <button @click="centerIcon" class="center-button">Center Icon</button>
                 </section>
