@@ -58,7 +58,12 @@
                 </section>
 
                 <section class="control-group">
-                    <h3>Colors</h3>
+                    <div class="control-group-header">
+                        <h3>Colors</h3>
+                        <button @click="randomPalette" class="icon-button" title="Random palette"
+                                aria-label="Random palette"
+                                x-html="getIconHtml('dices')"></button>
+                    </div>
                     <!-- Color Targets: Active Target gets the ring; when
                          none is active (default) a swatch click picks the
                          target by mouse button (left=Start, right=End,
@@ -118,7 +123,6 @@
                         <input type="range" x-model.number="borderRadius" min="0" max="16">
                         <span class="range-value" x-text="borderRadius"></span>
                     </div>
-                    <button @click="randomPalette" class="center-button">🎲 Random palette</button>
                 </section>
 
                 <section class="control-group">
