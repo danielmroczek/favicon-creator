@@ -1,194 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVG Favicon Generator</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0idXJsKCNncmFkaWVudCkiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZXNtb2tlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtMyA5IDktNyA5IDd2MTFhMiAyIDAgMCAxLTIgMkg1YTIgMiAwIDAgMS0yLTJaIi8+CjxwYXRoIGQ9Im05IDIyVjEyaDZWMjIiLz4KPC9zdmc+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50IiB4MT0iMTAwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzNiODJmNiIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjVjZjYiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K" type="image/svg+xml" id="dynamic-favicon">
-</head>
-<body>
-    <div class="container" x-data="faviconCreator()">
-        <header class="header">
-            <h1>SVG Favicon Generator</h1>
-            <p>Create beautiful SVG favicons with gradients and custom icons</p>
-        </header>
-        
-        <div class="main-content">
-            <div class="preview-section">
-                <div class="preview-container">
-                    <!-- The preview IS the download: previewSvg is the exact
-                         canonical string emitted by lib/favicon.js. -->
-                    <div id="preview-svg" x-html="previewSvg"></div>
-                </div>
-                
-                <div class="download-section">
-                    <button @click="downloadFavicon" class="download-button">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7,10 12,15 17,10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        Download favicon.svg
-                    </button>
-                </div>
-            </div>
-            
-            <article class="controls-section">
-                <section class="control-group">
-                    <h3>Icon</h3>
-                    <div class="icon-search">
-                        <input type="text" x-model="iconSearch" placeholder="Search all Lucide icons..." style="margin-bottom: 1rem;">
-                        <div class="icon-grid" id="icon-grid">
-                            <template x-for="iconName in displayedIcons" :key="iconName">
-                                <div class="icon-item" 
-                                     :class="{ 'selected': currentIcon === iconName && !customIconSubpaths }"
-                                     @click="selectIcon(iconName)"
-                                     x-html="getIconHtml(iconName)">
-                                </div>
-                            </template>
-                            <div x-show="displayedIcons.length === 0" style="grid-column: 1 / -1; text-align: center; padding: 1rem; color: #666;">
-                                No icons found
-                            </div>
-                            <div x-show="displayedIcons.length > 100" style="grid-column: 1 / -1; text-align: center; padding: 0.5rem; color: #666; font-size: 0.8rem;" x-text="`Showing ${displayedIcons.length} icons`">
-                            </div>
-                        </div>
-                    </div>
-                </section>
 
-                <section class="control-group">
-                    <div class="control-group-header">
-                        <h3>Colors</h3>
-                        <button @click="randomPalette" class="icon-button" title="Random palette"
-                                aria-label="Random palette"
-                                x-html="getIconHtml('dices')"></button>
-                    </div>
-                    <!-- Color Targets: Active Target gets the ring; when
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVG Favicon Generator</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon"
+    href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0idXJsKCNncmFkaWVudCkiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZXNtb2tlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtMyA5IDktNyA5IDd2MTFhMiAyIDAgMCAxLTIgMkg1YTIgMiAwIDAgMS0yLTJaIi8+CjxwYXRoIGQ9Im05IDIyVjEyaDZWMjIiLz4KPC9zdmc+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50IiB4MT0iMTAwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzNiODJmNiIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjVjZjYiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K"
+    type="image/svg+xml" id="dynamic-favicon">
+</head>
+
+<body>
+  <div class="container" x-data="faviconCreator()">
+    <header class="header">
+      <h1>SVG Favicon Generator</h1>
+      <p>Create beautiful SVG favicons with gradients and custom icons</p>
+    </header>
+
+    <div class="main-content">
+      <div class="preview-section">
+        <div class="preview-container">
+          <!-- The preview IS the download: previewSvg is the exact
+                         canonical string emitted by lib/favicon.js. -->
+          <div id="preview-svg" x-html="previewSvg"></div>
+        </div>
+
+        <div class="download-section">
+          <button @click="downloadFavicon" class="download-button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              style="margin-right: 0.5rem;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7,10 12,15 17,10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download favicon.svg
+          </button>
+        </div>
+      </div>
+
+      <article class="controls-section">
+        <section class="control-group">
+          <h3>Icon</h3>
+          <div class="icon-search">
+            <input type="text" x-model="iconSearch" placeholder="Search all Lucide icons..."
+              style="margin-bottom: 1rem;">
+            <div class="icon-grid" id="icon-grid">
+              <template x-for="iconName in displayedIcons" :key="iconName">
+                <div class="icon-item" :class="{ 'selected': currentIcon === iconName && !customIconSubpaths }"
+                  @click="selectIcon(iconName)" x-html="getIconHtml(iconName)">
+                </div>
+              </template>
+              <div x-show="displayedIcons.length === 0"
+                style="grid-column: 1 / -1; text-align: center; padding: 1rem; color: #666;">
+                No icons found
+              </div>
+              <div x-show="displayedIcons.length > 100"
+                style="grid-column: 1 / -1; text-align: center; padding: 0.5rem; color: #666; font-size: 0.8rem;"
+                x-text="`Showing ${displayedIcons.length} icons`">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="control-group">
+          <div class="control-group-header">
+            <h3>Colors</h3>
+            <button @click="randomPalette" class="icon-button" title="Random palette" aria-label="Random palette"
+              x-html="getIconHtml('dices')"></button>
+          </div>
+          <!-- Color Targets: Active Target gets the ring; when
                          none is active (default) a swatch click picks the
                          target by mouse button (left=Start, right=End,
                          middle=Icon). Click a target to pin it, click
                          again to release back to mouse mode. -->
-                    <div class="color-targets">
-                        <template x-for="targetName in ['color1', 'color2', 'iconColor']" :key="targetName">
-                            <div class="color-target"
-                                 :class="{ active: activeTarget === targetName }"
-                                 @click="toggleTarget(targetName)">
-                                <span x-text="shortTargetLabel(targetName)"></span>
-                            </div>
-                        </template>
-                    </div>
+          <div class="color-targets">
+            <template x-for="targetName in ['color1', 'color2', 'iconColor']" :key="targetName">
+              <div class="color-target" :class="{ active: activeTarget === targetName }"
+                @click="toggleTarget(targetName)">
+                <span x-text="shortTargetLabel(targetName)"></span>
+              </div>
+            </template>
+          </div>
 
-                    <!-- Shared Swatch Grid: rows = hues, columns = shades
+          <!-- Shared Swatch Grid: rows = hues, columns = shades
                          100–900, Neutral Extras last. -->
-                    <div class="swatch-grid" id="swatch-grid">
-                        <template x-for="row in swatchGrid" :key="row.hue">
-                            <template x-for="s in row.shades" :key="row.hue + s.shade">
-                                <div class="swatch"
-                                     :class="{ selected: [color1, color2, iconColor].includes(s.hex) }"
-                                     :style="`background: ${s.hex}`"
-                                     :title="`${row.hue}-${s.shade}`"
-                                     @mousedown="$event.preventDefault(); selectSwatch(s.hex, $event.button)"
-                                     @contextmenu.prevent>
-                                    <span class="swatch-badge"
-                                          x-show="swatchRoles(s.hex).length"
-                                          x-text="swatchRoles(s.hex).join('')"></span>
-                                </div>
-                            </template>
-                        </template>
-                        <template x-for="extra in paletteLib.neutralExtras" :key="extra.name">
-                            <div class="swatch neutral"
-                                 :class="{ selected: [color1, color2, iconColor].includes(extra.hex) }"
-                                 :style="`background: ${extra.hex}`"
-                                 :title="extra.name"
-                                 @mousedown="$event.preventDefault(); selectSwatch(extra.hex, $event.button)"
-                                 @contextmenu.prevent>
-                                <span class="swatch-badge"
-                                      x-show="swatchRoles(extra.hex).length"
-                                      x-text="swatchRoles(extra.hex).join('')"></span>
-                            </div>
-                        </template>
-                    </div>
-                </section>
+          <div class="swatch-grid" id="swatch-grid">
+            <template x-for="row in swatchGrid" :key="row.hue">
+              <template x-for="s in row.shades" :key="row.hue + s.shade">
+                <div class="swatch" :class="{ selected: [color1, color2, iconColor].includes(s.hex) }"
+                  :style="`background: ${s.hex}`" :title="`${row.hue}-${s.shade}`"
+                  @mousedown="$event.preventDefault(); selectSwatch(s.hex, $event.button)" @contextmenu.prevent>
+                  <span class="swatch-badge" x-show="swatchRoles(s.hex).length"
+                    x-text="swatchRoles(s.hex).join('')"></span>
+                </div>
+              </template>
+            </template>
+            <template x-for="extra in paletteLib.neutralExtras" :key="extra.name">
+              <div class="swatch neutral" :class="{ selected: [color1, color2, iconColor].includes(extra.hex) }"
+                :style="`background: ${extra.hex}`" :title="extra.name"
+                @mousedown="$event.preventDefault(); selectSwatch(extra.hex, $event.button)" @contextmenu.prevent>
+                <span class="swatch-badge" x-show="swatchRoles(extra.hex).length"
+                  x-text="swatchRoles(extra.hex).join('')"></span>
+              </div>
+            </template>
+          </div>
+        </section>
 
-                <section class="control-group">
-                    <h3>Background</h3>
-                    <div class="range-group" style="margin-top: 1rem;">
-                        <label>Gradient Angle</label>
-                        <input type="range" x-model.number="gradientAngle" min="0" max="360">
-                        <span class="range-value" x-text="gradientAngle + '°'"></span>
-                    </div>
-                    <div class="range-group">
-                        <label>Border Radius</label>
-                        <input type="range" x-model.number="borderRadius" min="0" max="16">
-                        <span class="range-value" x-text="borderRadius"></span>
-                    </div>
-                </section>
+        <section class="control-group">
+          <h3>Background</h3>
+          <div class="range-group" style="margin-top: 1rem;">
+            <label>Gradient Angle</label>
+            <input type="range" x-model.number="gradientAngle" min="0" max="360">
+            <span class="range-value" x-text="gradientAngle + '°'"></span>
+          </div>
+          <div class="range-group">
+            <label>Border Radius</label>
+            <input type="range" x-model.number="borderRadius" min="0" max="16">
+            <span class="range-value" x-text="borderRadius"></span>
+          </div>
+        </section>
 
-                <section class="control-group">
-                    <h3>Icon options</h3>
-                    <div class="position-controls">
-                        <div class="range-group">
-                            <label>X Position</label>
-                            <input type="range" x-model.number="iconX" min="0" max="32">
-                            <span class="range-value" x-text="iconX"></span>
-                        </div>
-                        <div class="range-group">
-                            <label>Y Position</label>
-                            <input type="range" x-model.number="iconY" min="0" max="32">
-                            <span class="range-value" x-text="iconY"></span>
-                        </div>
-                    </div>
-                    <div class="range-group">
-                        <label>Icon Size</label>
-                        <input type="range" x-model.number="iconSize" min="4" max="28">
-                        <span class="range-value" x-text="iconSize"></span>
-                    </div>
-                    <div class="range-group">
-                        <label>Rotation</label>
-                        <input type="range" x-model.number="iconRotation" min="0" max="360">
-                        <span class="range-value" x-text="iconRotation + '°'"></span>
-                    </div>
-                    <div class="range-group">
-                        <label>Stroke Width</label>
-                        <input type="range" x-model.number="strokeWidth" min="0.5" max="4" step="0.5">
-                        <span class="range-value" x-text="strokeWidth"></span>
-                    </div>
-                    <div style="margin-top: 1rem;">
-                        <label>Stroke Line Cap</label>
-                        <select x-model="strokeLinecap" style="width: 100%; margin-top: 0.5rem;">
-                            <option value="round">Round</option>
-                            <option value="square">Square</option>
-                            <option value="butt">Butt</option>
-                        </select>
-                    </div>
-                    <button @click="centerIcon" class="center-button">Center Icon</button>
-                </section>
-                
-                <section class="control-group">
-                    <h3>Custom Icon Upload</h3>
-                    <div class="upload-area" 
-                         @click="$refs.fileInput.click()"
-                         @dragover.prevent="$el.classList.add('dragover')"
-                         @dragleave="$el.classList.remove('dragover')"
-                         @drop.prevent="handleFileDrop($event)">
-                        <input type="file" x-ref="fileInput" @change="handleFileUpload($event)" accept=".svg" class="hidden">
-                        <p>Click or drag to upload custom SVG icon</p>
-                        <small>Only SVG files with path elements supported</small>
-                    </div>
-                </section>
-            </article>
-        </div>
+        <section class="control-group">
+          <h3>Icon options</h3>
+          <div class="position-controls">
+            <div class="range-group">
+              <label>X Position</label>
+              <input type="range" x-model.number="iconX" min="0" max="32">
+              <span class="range-value" x-text="iconX"></span>
+            </div>
+            <div class="range-group">
+              <label>Y Position</label>
+              <input type="range" x-model.number="iconY" min="0" max="32">
+              <span class="range-value" x-text="iconY"></span>
+            </div>
+          </div>
+          <div class="range-group">
+            <label>Icon Size</label>
+            <input type="range" x-model.number="iconSize" min="4" max="28">
+            <span class="range-value" x-text="iconSize"></span>
+          </div>
+          <div class="range-group">
+            <label>Rotation</label>
+            <input type="range" x-model.number="iconRotation" min="0" max="360">
+            <span class="range-value" x-text="iconRotation + '°'"></span>
+          </div>
+          <div class="range-group">
+            <label>Stroke Width</label>
+            <input type="range" x-model.number="strokeWidth" min="0.5" max="4" step="0.5">
+            <span class="range-value" x-text="strokeWidth"></span>
+          </div>
+          <div style="margin-top: 1rem;">
+            <label>Stroke Line Cap</label>
+            <select x-model="strokeLinecap" style="width: 100%; margin-top: 0.5rem;">
+              <option value="round">Round</option>
+              <option value="square">Square</option>
+              <option value="butt">Butt</option>
+            </select>
+          </div>
+          <button @click="centerIcon" class="center-button">Center Icon</button>
+        </section>
+
+        <section class="control-group">
+          <h3>Custom Icon Upload</h3>
+          <div class="upload-area" @click="$refs.fileInput.click()" @dragover.prevent="$el.classList.add('dragover')"
+            @dragleave="$el.classList.remove('dragover')" @drop.prevent="handleFileDrop($event)">
+            <input type="file" x-ref="fileInput" @change="handleFileUpload($event)" accept=".svg" class="hidden">
+            <p>Click or drag to upload custom SVG icon</p>
+            <small>Only SVG files with path elements supported</small>
+          </div>
+        </section>
+      </article>
     </div>
+  </div>
 
-    <!-- Vendor libraries. svgpath is a pre-bundled IIFE (no UMD build exists
+  <!-- Vendor libraries. svgpath is a pre-bundled IIFE (no UMD build exists
          upstream) that bakes transforms into path data — see lib/ header. -->
-    <script src="svgpath.min.js"></script>
-    <script src="lib/material-colors.js"></script>
-    <script src="lib/path-lib.js"></script>
-    <script src="lib/favicon.js"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="script.js"></script>
+  <script src="svgpath.min.js"></script>
+  <script src="lib/material-colors.js"></script>
+  <script src="lib/path-lib.js"></script>
+  <script src="lib/favicon.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="script.js"></script>
 </body>
+
 </html>

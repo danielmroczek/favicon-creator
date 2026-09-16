@@ -9,6 +9,13 @@ function faviconCreator() {
     // Material shade axis for the color grid — 100–900 only (no 50,
     // no a100–a700 accents). See CONTEXT.md ("Shade").
     const SHADES = [100, 200, 300, 400, 500, 600, 700, 800, 900];
+    // Lucide's "paint dot" circles use r=".5" — a 1-unit diameter dot. In the
+    // 24-unit icon space that's sub-pixel on a 32px canvas (~0.4px at the
+    // default 24px icon size), so the palette swatches render as a near-
+    // invisible smudge. Small FILLED circles are bumped up to a minimum radius
+    // so decorative dots stay legible at favicon scale. The minimum tracks the
+    // Stroke Width slider (see minDotRadius()) so dots grow and shrink with
+    // the outline. Stroke-based shapes are untouched.
     // Palette Random draws its background pair from window.materialColors
     // (vendored lib/material-colors.js, loaded before this script).
     const palette = (typeof window !== 'undefined' && window.materialColors) || {};
@@ -283,6 +290,37 @@ function faviconCreator() {
         },
 
         /**
+         * Minimum radius (in the 24-unit local space) for decorative fill
+         * dots, sized to match the outline: on the canvas the stroke renders
+         * `strokeWidth / scale` units thick, while a dot baked through the
+         * same matrix renders `2r · scale` units wide. Equating them gives
+         * r = strokeWidth / (2·scale²). At the defaults (stroke 2, iconSize
+         * 24 → scale 1) that is exactly 1 — the same visual weight as the
+         * width-2 stroke — and it grows/shrinks with BOTH sliders.
+         */
+        minDotRadius() {
+            const scale = this.iconSize / 24;
+            return scale > 0 ? this.strokeWidth / (2 * scale * scale) : 1;
+        },
+
+        /**
+         * Bump a small filled circle up to minDotRadius(). Lucide's
+         * decorative "paint dots" (e.g. the palette swatches) are r=".5" — a
+         * 1-unit dot that is sub-pixel on a 32px favicon and renders blank.
+         * Only circles that are FILL-based with a small radius are touched:
+         * stroke-based shapes, filled shapes with no radius, and anything
+         * already bigger are left as-is so we never alter real artwork.
+         */
+        clampTinyFilledDot(shape) {
+            if (shape.tagName.toLowerCase() !== 'circle') return;
+            const r = parseFloat(shape.getAttribute('r'));
+            const minR = this.minDotRadius();
+            if (!Number.isFinite(r) || r <= 0 || r >= minR) return;
+            if ((shape.getAttribute('fill') || '').toLowerCase() === 'none') return;
+            shape.setAttribute('r', String(minR));
+        },
+
+        /**
          * Parse an SVG fragment and extract stroke/fill subpath lists.
          * Every shape element is converted to path data; element and ancestor
          * transforms are baked into the coordinates via lib/path-lib.js.
@@ -301,6 +339,11 @@ function faviconCreator() {
             const shapes = doc.querySelectorAll('path, circle, rect, ellipse, line, polyline, polygon');
 
             shapes.forEach(shape => {
+                // Bump tiny filled circles (Lucide "paint dots", r=".5") up to
+                // a legible minimum in the 24-unit icon space. Done on the
+                // parsed node before conversion so the resulting arc path picks
+                // up the larger radius. Stroke-based dots are left alone.
+                this.clampTinyFilledDot(shape);
                 const localD = window.faviconPathLib.shapeElementToD(shape);
                 if (!localD) return;
 
