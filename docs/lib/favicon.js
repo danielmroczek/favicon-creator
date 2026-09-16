@@ -85,15 +85,24 @@
 
     const { x1, y1, x2, y2 } = gradientStops(gradientAngle);
 
+    // Pretty-printed output: one element per line. The canonical format doc
+    // (favicon-format.md) is itself written this way, the portfolio extractor
+    // parses with whitespace-tolerant regexes/serializers, so newlines are
+    // cosmetic only and safe in preview, download, and data-URI alike.
     const parts = [];
     parts.push('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">');
+    parts.push('');
+    parts.push(`  <defs>`);
     parts.push(
-      `<defs><linearGradient id="gradient" x1="${x1}%" y1="${y1}%" x2="${x2}%" y2="${y2}%">` +
-      `<stop stop-color="${color1}"/>` +
-      `<stop offset="1" stop-color="${color2}"/>` +
-      `</linearGradient></defs>`
+      `    <linearGradient id="gradient" x1="${x1}%" y1="${y1}%" x2="${x2}%" y2="${y2}%">`
     );
-    parts.push(`<rect width="32" height="32" rx="${borderRadius}" fill="url(#gradient)"/>`);
+    parts.push(`      <stop stop-color="${color1}"/>`);
+    parts.push(`      <stop offset="1" stop-color="${color2}"/>`);
+    parts.push(`    </linearGradient>`);
+    parts.push(`  </defs>`);
+    parts.push('');
+    parts.push(`  <rect width="32" height="32" rx="${borderRadius}" fill="url(#gradient)"/>`);
+    parts.push('');
 
     // Marker owner: the merged stroke path if present, else the first filled
     // shape. Exactly ONE element carries id="icon" (format rule 8) — when an
@@ -108,8 +117,8 @@
         .map((d) => bakeSubpath(d, matrix))
         .filter(Boolean)
         .join('');
-      parts.push(
-        `<path${hasIconContent ? ' id="icon"' : ''} fill="none" stroke="${state.iconColor || '#f5f5f5'}" ` +
+
+      parts.push(`  <path${hasIconContent ? ' id="icon"' : ''} fill="none" stroke="${state.iconColor || '#f5f5f5'}" ` +
         `stroke-width="${round(bakedStrokeWidth)}" stroke-linecap="${strokeLinecap}" ` +
         `stroke-linejoin="round" d="${merged}"/>`
       );
@@ -121,14 +130,14 @@
     // stay unmarked extra artwork that the extractor ignores.
     fillSubpaths.forEach((d, index) => {
       const isMarkerOwner = strokeSubpaths.length === 0 && index === 0 && hasIconContent;
-      parts.push(
-        `<path${isMarkerOwner ? ' id="icon"' : ''} fill="${state.iconColor || '#f5f5f5'}" ` +
+      parts.push(`  <path${isMarkerOwner ? ' id="icon"' : ''} fill="${state.iconColor || '#f5f5f5'}" ` +
         `d="${bakeSubpath(d, matrix)}"/>`
       );
     });
 
+    parts.push('');
     parts.push('</svg>');
-    return parts.join('');
+    return parts.join('\n');
   }
 
   function bakeSubpath(d, matrix) {
