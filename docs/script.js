@@ -17,8 +17,22 @@ function faviconCreator() {
     // Stroke Width slider (see minDotRadius()) so dots grow and shrink with
     // the outline. Stroke-based shapes are untouched.
     // Palette Random draws its background pair from window.materialColors
-    // (vendored lib/material-colors.js, loaded before this script).
+    // (vendored lib/material-colors.js, loaded before this script). The
+    // palette logic itself lives in lib/palette-lib.js (window.faviconPaletteLib,
+    // loaded before this script) — the shared seam also used by the
+    // portfolio's project generator.
     const palette = (typeof window !== 'undefined' && window.materialColors) || {};
+    // The component keeps its paletteLib seam (tests and UI reach it through
+    // ctx.paletteLib.*) by delegating to the shared lib.
+    const sharedLib = (typeof window !== 'undefined' && window.faviconPaletteLib) || null;
+    const paletteLib = sharedLib ? {
+        SHADES,
+        neutralExtras: sharedLib.neutralExtras,
+        buildGrid: (p) => sharedLib.buildGrid(p),
+        chromaticHues: (p) => sharedLib.chromaticHues(p),
+        pick: sharedLib.pick,
+        randomPair: (p, opts) => sharedLib.randomPair(p, opts),
+    } : null;
 
     return {
         color1: '#2196f3',   // replaced by randomPalette() in init()
@@ -43,79 +57,11 @@ function faviconCreator() {
         /**
          * Material-pattern color palette seam — see CONTEXT.md ("Color
          * Target", "Swatch", "Neutral Extras", "Shade", "Palette Random").
-         * Pure helpers: no `this`, no DOM — tests run these in Node.
+         * Implementation lives in lib/palette-lib.js (shared with the
+         * portfolio generator); this facade keeps the UI/test surface
+         * unchanged. Pure helpers: no `this`, no DOM.
          */
-        paletteLib: {
-            /** The two swatches outside the formal palette, shown first. */
-            neutralExtras: [
-                { name: 'white', hex: '#ffffff' },
-                { name: 'black', hex: '#000000' },
-            ],
-
-            /**
-             * Grid model: one row per hue, columns = shades 100–900.
-             * @param {object} palette key→hex map (vendored material colors)
-             */
-            buildGrid(palette) {
-                const rows = new Map();
-                for (const [key, hex] of Object.entries(palette)) {
-                    const m = key.match(/^(.*)-(\d+)$/);
-                    if (!m) continue;
-                    const [, hue, shadeStr] = m;
-                    const shade = parseInt(shadeStr, 10);
-                    if (!SHADES.includes(shade)) continue; // no 50, no accents
-                    if (!rows.has(hue)) rows.set(hue, []);
-                    rows.get(hue).push({ shade, hex });
-                }
-                return [...rows.keys()]
-                    .sort()
-                    .map((hue) => ({
-                        hue,
-                        shades: rows.get(hue).sort((a, b) => a.shade - b.shade),
-                    }));
-            },
-
-            /**
-             * Hue names with saturation (excludes grey/bluegrey) — the pool
-             * Palette Random draws from.
-             */
-            chromaticHues(palette) {
-                return [...new Set(Object.keys(palette)
-                    .filter((k) => /^.*-\d+$/.test(k))
-                    .map((k) => k.replace(/-\d+$/, '')))]
-                    .filter((hue) => hue !== 'grey' && hue !== 'bluegrey');
-            },
-
-            pick(entries) {
-                return entries[Math.floor(Math.random() * entries.length)];
-            },
-
-            /**
-             * Palette Random: same hue, start shade ± exactly TWO steps,
-             * direction drawn only from directions that stay within
-             * 100–900 (never clamped to a one-step). Returns the pair keys
-             * with resolved hexes. Icon Color is never randomized.
-             */
-            randomPair(palette) {
-                const hue = this.pick(this.chromaticHues(palette));
-                const shadeList = SHADES;
-                const idx = Math.floor(Math.random() * shadeList.length);
-                const shade = shadeList[idx];
-
-                const dirs = [];
-                if (idx + 2 < shadeList.length) dirs.push(+1);
-                if (idx - 2 >= 0) dirs.push(-1);
-                const dir = this.pick(dirs);
-                const endShade = shadeList[idx + dir * 2];
-
-                return {
-                    startKey: `${hue}-${shade}`,
-                    startHex: palette[`${hue}-${shade}`],
-                    endKey: `${hue}-${endShade}`,
-                    endHex: palette[`${hue}-${endShade}`],
-                };
-            },
-        },
+        paletteLib,
 
         get displayedIcons() {
             const searchTerm = this.iconSearch.toLowerCase().trim();

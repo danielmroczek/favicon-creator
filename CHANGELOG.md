@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- Palette logic extracted from `script.js` into `docs/lib/palette-lib.js`
+  (`window.faviconPaletteLib`, IIFE like the other `lib/*.js` files). The
+  component's `paletteLib` seam is unchanged; the lib is now also consumed
+  externally by the portfolio's project generator, which loads this file from
+  raw.githubusercontent.com. `randomPair` gained optional
+  `{ shadeRange: [min, max] }` (clamp both ends) and `{ seed }`
+  (deterministic FNV-1a–seeded draws) options — the UI continues to use the
+  default full 100–900 unseeded range (`tests/palette-lib.test.mjs`).
+
 ### Added
 - Material color palette picker: all three colors (Start, End, Icon) are now
   chosen from a swatch grid built from the Material Colors palette
