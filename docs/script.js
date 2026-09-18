@@ -98,7 +98,15 @@ function faviconCreator() {
 
         init() {
             this.getAllLucideIcons();
-            this.swatchGrid = this.paletteLib.buildGrid(palette);
+            // Randomize hue-row order on every load (shades stay
+            // sorted 100–900 within each row; white/black extras are
+            // rendered separately and always last — see index.html).
+            const grid = this.paletteLib.buildGrid(palette);
+            for (let i = grid.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [grid[i], grid[j]] = [grid[j], grid[i]];
+            }
+            this.swatchGrid = grid;
             this.$watch('previewSvg', () => this.updateFavicon());
             this.randomPalette();   // Palette Random defaults at load
         },

@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- Swatch grid row order is now shuffled on every page load: hue rows
+  no longer appear alphabetically but in a random order per session.
+  Shades stay sorted 100–900 within each row; white/black neutral extras
+  always remain last.
 - Palette logic extracted from `script.js` into `docs/lib/palette-lib.js`
   (`window.faviconPaletteLib`, IIFE like the other `lib/*.js` files). The
   component's `paletteLib` seam is unchanged; the lib is now also consumed

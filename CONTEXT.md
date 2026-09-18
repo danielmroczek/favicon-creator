@@ -30,6 +30,11 @@ White (`#ffffff`) and black (`#000000`) — the two swatches that sit outside
 the formal Material Palette, displayed last in the grid. Icon Color defaults
 to white.
 
+### Hue Row Order
+The vertical order of hue rows in the Swatch Grid is shuffled at random on
+every page load (shades within each row stay sorted 100–900, and the Neutral
+Extras always stay last) so the palette never presents the same layout twice.
+
 ### Shade
 A Material lightness level. The grid offers only `100–900` in steps of 100 —
 no `50` and no accent levels (`a100`–`a700`).
