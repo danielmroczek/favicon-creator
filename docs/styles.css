@@ -1,5 +1,8 @@
 :root {
     --preview-size: 200px;
+    /* Sticky app header height + breathing room — the preview card pins
+       exactly below the header and never slides underneath it. */
+    --sticky-top: 4.9rem;
 }
 
 body {
@@ -12,24 +15,73 @@ body {
     padding: 2rem 1rem;
 }
 
-.header {
-    text-align: center;
-    margin-bottom: 3rem;
+.app-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    /* Pico gives <header> its own large padding — remove it so the bar
+       stays a compact single-row strip. Fixed height keeps downstream
+       sticky offsets deterministic. */
+    height: 3.5rem;
+    padding: 0;
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--pico-border-color);
+    background: color-mix(in srgb, var(--pico-background-color) 85%, transparent);
+    margin-bottom: 0;
 }
 
-.header h1 {
+/* Sticky offset for the preview card: measured header height (~45px) + gap. */
+
+.app-header-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 1rem;
+    height: 100%;
+}
+
+.app-header h1 {
+    font-size: 1.25rem;
+    margin: 0;
     background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin-bottom: 0.5rem;
+    white-space: nowrap;
+}
+
+.app-header p {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    transform: translateY(1px);
+    color: var(--pico-muted-color);
+}
+
+@media (max-width: 600px) {
+    .app-header p {
+        display: none;
+    }
 }
 
 .main-content {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
+    /* Dashboard layout: fixed-width preview sidebar + fluid controls. */
+    grid-template-columns: 20rem 1fr;
+    gap: 2rem;
     align-items: start;
+    /* Takes over the spacing the header margin used to provide. */
+    padding-top: 1.5rem;
+}
+
+@media (max-width: 900px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+
+    .preview-section {
+        position: static;
+    }
 }
 
 .preview-section {
@@ -37,7 +89,16 @@ body {
     flex-direction: column;
     align-items: center;
     position: sticky;
-    top: 2rem;
+    /* Exactly equals the card's natural resting top: 3.5rem header height
+       + 1.5rem main-content padding-top. In px because Pico root font-size
+       is 20px (5rem would be 100px there, but 80px on default 16px roots).
+       Threshold == flow position ⇒ zero movement when sticky engages. */
+    top: calc(3.5rem + 1.5rem);
+    padding: 1.5rem 1.25rem;
+    border: 1px solid var(--pico-border-color);
+    border-radius: 0.75rem;
+    background: var(--pico-card-background-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 #preview-svg {
@@ -251,6 +312,10 @@ body {
     margin: 0;
 }
 
+.control-group h3 {
+    margin-top: 0;
+}
+
 /* Compact icon-only button (e.g. "random palette" dice next to a header). */
 .icon-button {
     display: inline-flex;
@@ -306,7 +371,7 @@ body {
 
 .download-section {
     text-align: center;
-    padding-top: 2rem;
+    padding-top: 1.5rem;
     border-top: 1px solid var(--pico-border-color);
 }
 
