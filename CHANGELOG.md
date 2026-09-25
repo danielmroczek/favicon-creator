@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Absolute Stroke Width** toggle (like Lucide's): keeps the stroke at a
+  constant canvas thickness regardless of Icon Size. Default off — the
+  stroke scales with the icon.
+
+### Fixed
+- Stroke width now scales with icon size: shrinking the icon no longer made
+  the stroke look proportionally thicker (the stroke was pre-divided by the
+  scale factor — the baked matrix already handles scaling, so the attribute
+  was double-compensated). The baked stroke is now `strokeWidth · scale`
+  canvas units; `minDotRadius` for decorative fill dots was updated to the
+  same convention (`strokeWidth / 2`).
+
 ### Changed
 - Swatch grid row order is now shuffled on every page load: hue rows
   no longer appear alphabetically but in a random order per session.

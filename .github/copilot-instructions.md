@@ -41,9 +41,9 @@ Browser-based SVG favicon generator built with **Alpine.js** and vanilla JavaScr
 - **No debouncing needed**: Alpine.js reactivity is fast enough for instant search
 
 **4. Stroke Width Scaling**
-- Maintains visual consistency across different icon sizes
-- Lucide icons (24x24 viewBox): `adjustedStrokeWidth = strokeWidth / (iconSize / 24)`
-- Custom SVGs: `adjustedStrokeWidth = strokeWidth / scaleFactor` where scaleFactor preserves aspect ratio
+- Stroke width is expressed in the icon's LOCAL 24-unit basis and is written to the output as-is; the baked translate+scale matrix scales it on the canvas together with the geometry, so the stroke visually scales with iconSize
+- Do NOT pre-divide stroke width by the scale factor — that would keep canvas thickness constant and make small icons look proportionally thicker
+- Custom SVGs follow the same local-units convention (scaleFactor preserves aspect ratio)
 
 **5. Alpine.js Directives Used**
 - `x-data`: Initialize component state on main container
