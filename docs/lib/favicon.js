@@ -56,6 +56,11 @@
    *   strokeLinecap       'round' | 'square' | 'butt'
    *   iconX/iconY/iconSize  icon placement on the 32×32 canvas
    *   iconRotation        degrees, about the icon's center
+   *   absoluteStrokeWidth when true, the stroke keeps a CONSTANT canvas
+   *                       thickness (strokeWidth units) regardless of
+   *                       iconSize — mirrors Lucide's "Absolute Stroke
+   *                       Width" toggle. Default false: stroke scales
+   *                       with the icon.
    *   strokeSubpaths      array of `d` strings (stroke-based, merged to ONE path)
    *   fillSubpaths        array of `d` strings (filled, kept as separate shapes)
    * @returns {string} full SVG text
@@ -65,17 +70,22 @@
       color1, color2, gradientAngle, borderRadius,
       strokeWidth, strokeLinecap,
       iconX, iconY, iconSize, iconRotation,
+      absoluteStrokeWidth = false,
       strokeSubpaths = [], fillSubpaths = [],
     } = state;
 
     // Scale factor from the 24-unit lucide basis to the on-canvas icon size.
     const scale = iconSize / 24;
     // The matrix is baked into the path data (no transform attribute), so
-    // the stroke-width attribute lives in FINAL canvas units. The stroke
-    // scales WITH the icon — on-canvas thickness = strokeWidth · scale =
-    // strokeWidth · iconSize/24. Dividing instead made the stroke grow as
-    // the icon shrank.
-    const bakedStrokeWidth = strokeWidth * scale;
+    // the stroke-width attribute lives in FINAL canvas units.
+    //
+    // Default (relative, like Lucide): stroke scales WITH the icon —
+    //   on-canvas thickness = strokeWidth · scale = strokeWidth · iconSize/24.
+    //
+    // absoluteStrokeWidth (Lucide's "Absolute Stroke Width"): keep a
+    // constant canvas thickness of exactly `strokeWidth` units no matter
+    // how big the icon is rendered.
+    const bakedStrokeWidth = absoluteStrokeWidth ? strokeWidth : strokeWidth * scale;
 
     // Combined transform: place the icon (translate + scale its 24-unit
     // coordinate space onto the canvas), then rotate about its center.

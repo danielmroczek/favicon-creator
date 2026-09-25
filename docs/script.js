@@ -42,6 +42,7 @@ function faviconCreator() {
         iconColor: '#ffffff',  // Neutral Extras white — never randomized
         strokeWidth: 2,
         strokeLinecap: 'round',
+        absoluteStrokeWidth: false,  // Lucide-style: stroke scales with icon by default
         iconX: 4,
         iconY: 4,
         iconSize: 24,
@@ -87,6 +88,7 @@ function faviconCreator() {
                 iconColor: this.iconColor,
                 strokeWidth: this.strokeWidth,
                 strokeLinecap: this.strokeLinecap,
+                absoluteStrokeWidth: this.absoluteStrokeWidth,
                 iconX: this.iconX,
                 iconY: this.iconY,
                 iconSize: this.iconSize,

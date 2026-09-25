@@ -174,4 +174,43 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   assert.ok(svg.includes('stroke-width="1"'), 'downscaled icon gets proportionally thinner stroke');
 }
 
+// ── Absolute Stroke Width: constant canvas thickness regardless of iconSize ─
+{
+  const svg = buildFaviconSvg({
+    color1: '#000',
+    color2: '#000',
+    gradientAngle: 0,
+    borderRadius: 4,
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    iconX: 5,
+    iconY: 5,
+    iconSize: 12, // scale 0.5, but absolute mode → stroke stays 2 canvas units
+    iconRotation: 0,
+    absoluteStrokeWidth: true,
+    strokeSubpaths: ['M1 1L2 2'],
+    fillSubpaths: [],
+  });
+  assert.ok(svg.includes('stroke-width="2"'), 'absolute mode keeps stroke at strokeWidth canvas units');
+}
+
+{
+  const svg = buildFaviconSvg({
+    color1: '#000',
+    color2: '#000',
+    gradientAngle: 0,
+    borderRadius: 4,
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    iconX: 5,
+    iconY: 5,
+    iconSize: 4, // extreme downscale — absolute mode still emits strokeWidth
+    iconRotation: 0,
+    absoluteStrokeWidth: true,
+    strokeSubpaths: ['M1 1L2 2'],
+    fillSubpaths: [],
+  });
+  assert.ok(svg.includes('stroke-width="2"'), 'absolute mode ignores iconSize entirely');
+}
+
 console.log('tests/build-favicon.test.mjs — all assertions passed');
