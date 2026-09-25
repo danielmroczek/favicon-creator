@@ -70,7 +70,12 @@
 
     // Scale factor from the 24-unit lucide basis to the on-canvas icon size.
     const scale = iconSize / 24;
-    const bakedStrokeWidth = strokeWidth / scale;
+    // The matrix is baked into the path data (no transform attribute), so
+    // the stroke-width attribute lives in FINAL canvas units. The stroke
+    // scales WITH the icon — on-canvas thickness = strokeWidth · scale =
+    // strokeWidth · iconSize/24. Dividing instead made the stroke grow as
+    // the icon shrank.
+    const bakedStrokeWidth = strokeWidth * scale;
 
     // Combined transform: place the icon (translate + scale its 24-unit
     // coordinate space onto the canvas), then rotate about its center.

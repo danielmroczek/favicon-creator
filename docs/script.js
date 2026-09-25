@@ -245,16 +245,15 @@ function faviconCreator() {
 
         /**
          * Minimum radius (in the 24-unit local space) for decorative fill
-         * dots, sized to match the outline: on the canvas the stroke renders
-         * `strokeWidth / scale` units thick, while a dot baked through the
-         * same matrix renders `2r · scale` units wide. Equating them gives
-         * r = strokeWidth / (2·scale²). At the defaults (stroke 2, iconSize
-         * 24 → scale 1) that is exactly 1 — the same visual weight as the
-         * width-2 stroke — and it grows/shrinks with BOTH sliders.
+         * dots, sized to match the outline. The baked stroke renders
+         * `strokeWidth · scale` canvas units thick, while a dot of local
+         * radius r baked through the same matrix is `2r · scale` wide.
+         * Equating them gives r = strokeWidth / 2 — independent of scale,
+         * so a dot always matches the stroke simply by tracking the
+         * Stroke Width slider. At the default (stroke 2) that is exactly 1.
          */
         minDotRadius() {
-            const scale = this.iconSize / 24;
-            return scale > 0 ? this.strokeWidth / (2 * scale * scale) : 1;
+            return this.strokeWidth / 2;
         },
 
         /**

@@ -55,8 +55,9 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   assert.ok(svg.includes('stroke-linecap="round"'), 'stroke-linecap carried through');
   // Exactly one <path> for a stroke-only icon (merged subpaths).
   assert.equal(svg.match(/<path\b/g).length, 1, 'exactly one path element for stroke icon');
-  // iconSize 22 → scale 22/24 → stroke-width 2/(22/24) ≈ 2.1818 (compensation).
-  assert.equal((svg.match(/<path\b[^>]*>/g) || [''])[0], '<path id="icon" fill="none" stroke="#f5f5f5" stroke-width="2.1818" stroke-linecap="round" stroke-linejoin="round" d="M1 1L2 2M3 3L4 4"/>', 'merged subpaths concatenate directly in d');
+  // iconSize 22 → scale 22/24 → baked stroke = 2·22/24 ≈ 1.8333 (stroke
+  // scales WITH the icon; attribute lives in final canvas units).
+  assert.equal((svg.match(/<path\b[^>]*>/g) || [''])[0], '<path id="icon" fill="none" stroke="#f5f5f5" stroke-width="1.8333" stroke-linecap="round" stroke-linejoin="round" d="M1 1L2 2M3 3L4 4"/>', 'merged subpaths concatenate directly in d');
   // Ends with the closed root tag.
   assert.ok(svg.endsWith('</svg>'), 'root element closed');
 }
@@ -162,12 +163,15 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     strokeLinecap: 'round',
     iconX: 5,
     iconY: 5,
-    iconSize: 12, // scale factor 0.5 → stroke doubled, then baked via matrix convention
+    iconSize: 12, // scale factor 0.5 → baked stroke = 2·0.5 = 1
     iconRotation: 0,
     strokeSubpaths: ['M1 1L2 2'],
     fillSubpaths: [],
   });
-  assert.ok(svg.includes('stroke-width="4"'), 'downscaled icon gets proportionally thicker stroke');
+  // No transform attribute exists, so stroke-width lives in FINAL canvas
+  // units and must be strokeWidth·scale = 2·0.5 = 1 — the stroke shrinks
+  // together with the icon instead of looking proportionally thicker.
+  assert.ok(svg.includes('stroke-width="1"'), 'downscaled icon gets proportionally thinner stroke');
 }
 
 console.log('tests/build-favicon.test.mjs — all assertions passed');
