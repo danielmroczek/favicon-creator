@@ -80,6 +80,8 @@ function faviconCreator() {
                 return '';
             }
             const { strokeSubpaths, fillSubpaths } = this.currentIconSubpaths();
+            // Determine icon metadata: Lucide icon vs custom SVG upload.
+            const isCustom = this.customIconSubpaths !== null;
             return window.faviconLib.buildFaviconSvg({
                 color1: this.color1,
                 color2: this.color2,
@@ -93,6 +95,8 @@ function faviconCreator() {
                 iconY: this.iconY,
                 iconSize: this.iconSize,
                 iconRotation: this.iconRotation,
+                iconFamily: isCustom ? 'custom' : 'lucide',
+                iconName: isCustom ? null : this.currentIcon,
                 strokeSubpaths,
                 fillSubpaths,
             });

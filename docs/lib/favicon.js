@@ -7,6 +7,7 @@
 //
 // Emitted structure contract:
 //   <svg ... width="32" height="32" viewBox="0 0 32 32">
+//       <metadata xmlns:fc="...">             (always present, icon genesis XML)
 //     <linearGradient id="gradient">...          (always present)
 //     <rect ... fill="url(#gradient)"/>          (full-screen background)
 //     <path id="icon" .../>                      (merged stroke subpaths — one path)
@@ -63,6 +64,8 @@
    *                       with the icon.
    *   strokeSubpaths      array of `d` strings (stroke-based, merged to ONE path)
    *   fillSubpaths        array of `d` strings (filled, kept as separate shapes)
+   *   iconFamily          icon source family (e.g. 'lucide', 'custom'), null if unknown
+   *   iconName            icon name within the family (kebab-case), null if unknown
    * @returns {string} full SVG text
    */
   function buildFaviconSvg(state) {
@@ -72,6 +75,7 @@
       iconX, iconY, iconSize, iconRotation,
       absoluteStrokeWidth = false,
       strokeSubpaths = [], fillSubpaths = [],
+      iconFamily, iconName,
     } = state;
 
     // Scale factor from the 24-unit lucide basis to the on-canvas icon size.
@@ -107,6 +111,20 @@
     const parts = [];
     parts.push('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">');
     parts.push('');
+
+    // Metadata: always emitted as the first child of <svg> (before <defs>).
+    // XML elements with a namespace — informational, not a round-trip
+    // contract (see ADR 0007).
+    const metaNs = 'https://danielmroczek.github.io/favicon-creator';
+    parts.push(`  <metadata xmlns:fc="${metaNs}">`);
+    parts.push(`    <fc:iconFamily>${iconFamily ?? ''}</fc:iconFamily>`);
+    parts.push(`    <fc:iconName>${iconName ?? ''}</fc:iconName>`);
+    parts.push(`    <fc:gradientStart>${color1}</fc:gradientStart>`);
+    parts.push(`    <fc:gradientEnd>${color2}</fc:gradientEnd>`);
+    parts.push(`    <fc:iconColor>${state.iconColor ?? '#f5f5f5'}</fc:iconColor>`);
+    parts.push(`  </metadata>`);
+    parts.push('');
+
     parts.push(`  <defs>`);
     parts.push(
       `    <linearGradient id="gradient" x1="${x1}%" y1="${y1}%" x2="${x2}%" y2="${y2}%">`
