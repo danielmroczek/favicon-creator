@@ -54,6 +54,8 @@ const svg = buildFaviconSvg({
   iconY: 5,
   iconSize: 22,
   iconRotation: 45,
+  iconFamily: 'lucide',
+  iconName: 'house',
   strokeSubpaths,
   fillSubpaths: [],
 });

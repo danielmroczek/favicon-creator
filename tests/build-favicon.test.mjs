@@ -213,4 +213,90 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   assert.ok(svg.includes('stroke-width="2"'), 'absolute mode ignores iconSize entirely');
 }
 
+// ── Metadata: always emitted, XML with namespace, first child of <svg> ──────
+{
+  const svg = buildFaviconSvg({
+    color1: '#3b82f6',
+    color2: '#1d4ed8',
+    gradientAngle: 315,
+    borderRadius: 4,
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    iconX: 5,
+    iconY: 5,
+    iconSize: 22,
+    iconRotation: 0,
+    iconFamily: 'lucide',
+    iconName: 'arrow-right',
+    iconColor: '#ffffff',
+    strokeSubpaths: ['M1 1L2 2'],
+    fillSubpaths: [],
+  });
+
+  // Metadata is the first child of <svg>, before <defs>.
+  assert.ok(svg.includes('<metadata'), 'metadata element present');
+  // Namespace declared on <metadata>.
+  const ns = 'https://danielmroczek.github.io/favicon-creator';
+  assert.ok(svg.includes(`xmlns:fc="${ns}"`), 'favicon-creator namespace declared');
+  // XML elements carry the values.
+  assert.ok(svg.includes('<fc:iconFamily>lucide</fc:iconFamily>'), 'iconFamily element');
+  assert.ok(svg.includes('<fc:iconName>arrow-right</fc:iconName>'), 'iconName element');
+  assert.ok(svg.includes('<fc:gradientStart>#3b82f6</fc:gradientStart>'), 'gradientStart element');
+  assert.ok(svg.includes('<fc:gradientEnd>#1d4ed8</fc:gradientEnd>'), 'gradientEnd element');
+  assert.ok(svg.includes('<fc:iconColor>#ffffff</fc:iconColor>'), 'iconColor element');
+  assert.ok(svg.includes('</metadata>'), 'metadata element closed');
+
+  // Metadata appears before <defs> — first child of <svg>.
+  const metaIdx = svg.indexOf('<metadata');
+  const defsIdx = svg.indexOf('<defs>');
+  assert.ok(metaIdx < defsIdx, 'metadata comes before defs');
+}
+
+// ── Metadata: empty elements for unknown icon (custom SVG) ──────────────────
+{
+  const svg = buildFaviconSvg({
+    color1: '#000',
+    color2: '#333',
+    gradientAngle: 0,
+    borderRadius: 4,
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    iconX: 5,
+    iconY: 5,
+    iconSize: 22,
+    iconRotation: 0,
+    iconFamily: 'custom',
+    iconName: null,
+    iconColor: '#f5f5f5',
+    strokeSubpaths: ['M1 1L2 2'],
+    fillSubpaths: [],
+  });
+
+  assert.ok(svg.includes('<fc:iconFamily>custom</fc:iconFamily>'), 'custom icon family');
+  assert.ok(svg.includes('<fc:iconName></fc:iconName>'), 'null iconName → empty element');
+}
+
+// ── Metadata: always emitted even without iconFamily/iconName ───────────────
+{
+  const svg = buildFaviconSvg({
+    color1: '#000',
+    color2: '#000',
+    gradientAngle: 0,
+    borderRadius: 4,
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    iconX: 5,
+    iconY: 5,
+    iconSize: 22,
+    iconRotation: 0,
+    // No iconFamily / iconName → defaults to null (empty element)
+    strokeSubpaths: ['M1 1L2 2'],
+    fillSubpaths: [],
+  });
+
+  assert.ok(svg.includes('<metadata'), 'metadata element always emitted');
+  assert.ok(svg.includes('<fc:iconFamily></fc:iconFamily>'), 'null iconFamily → empty element');
+  assert.ok(svg.includes('<fc:iconName></fc:iconName>'), 'null iconName → empty element');
+}
+
 console.log('tests/build-favicon.test.mjs — all assertions passed');
