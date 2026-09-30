@@ -55,3 +55,12 @@ Color. Rules:
 2. The End Color is the **same** Hue, two Shade steps away (e.g. `blue-600`
    → `blue-400`), with the up/down direction chosen randomly from the
    directions that keep the result within `100–900`.
+
+### Icon Metadata
+An optional `<metadata>` element in the generated SVG carrying namespaced
+XML children (`fc:` prefix, namespace `https://danielmroczek.github.io/favicon-creator`)
+with icon genesis information: `iconFamily` (`"lucide"` or `"custom"`),
+`iconName` (kebab-case, empty element if unknown), `gradientStart`, `gradientEnd`,
+`iconColor`. Always emitted by `buildFaviconSvg` — informational only, not a
+round-trip contract (ADR `0007` in danielmroczek.github.io).
+_Avoid_: Favicon metadata, SVG metadata, icon info

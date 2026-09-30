@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Icon metadata**: every generated favicon now includes a `<metadata>`
+  element (first child of `<svg>`) with namespaced XML children (`fc:`
+  prefix) carrying `iconFamily` (`"lucide"` or `"custom"`), `iconName`
+  (kebab-case, empty element for custom SVGs), `gradientStart`,
+  `gradientEnd`, and `iconColor`. Informational only — not a round-trip
+  contract (see ADR 0007 in danielmroczek.github.io).
 - **Absolute Stroke Width** toggle (like Lucide's): keeps the stroke at a
   constant canvas thickness regardless of Icon Size. Default off — the
   stroke scales with the icon.
