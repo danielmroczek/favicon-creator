@@ -1,69 +1,74 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## 2026-09-30
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+- Favicons now embed icon metadata in a `<metadata>` element (namespaced XML, `fc:` prefix): `iconFamily`, `iconName`, `gradientStart`, `gradientEnd`, `iconColor`. Informational only (ADR 0007).
+- Added metadata assertions to the tests (XML namespace, null handling).
 
-## [Unreleased]
+## 2026-09-25
 
-### Added
-- **Icon metadata**: every generated favicon now includes a `<metadata>`
-  element (first child of `<svg>`) with namespaced XML children (`fc:`
-  prefix) carrying `iconFamily` (`"lucide"` or `"custom"`), `iconName`
-  (kebab-case, empty element for custom SVGs), `gradientStart`,
-  `gradientEnd`, and `iconColor`. Informational only — not a round-trip
-  contract (see ADR 0007 in danielmroczek.github.io).
-- **Absolute Stroke Width** toggle (like Lucide's): keeps the stroke at a
-  constant canvas thickness regardless of Icon Size. Default off — the
-  stroke scales with the icon.
+- Fixed stroke width scaling: shrinking the icon made the stroke look proportionally thicker (double compensation — the attribute was pre-divided by the scale factor even though the baked matrix already scales it). The baked stroke is now `strokeWidth · scale` canvas units; `minDotRadius` follows the same convention.
+- New **Absolute Stroke Width** toggle (like Lucide's): constant canvas stroke thickness regardless of Icon Size. Default off — the stroke scales with the icon.
+- Updated README with the stroke scaling convention.
 
-### Fixed
-- Stroke width now scales with icon size: shrinking the icon no longer made
-  the stroke look proportionally thicker (the stroke was pre-divided by the
-  scale factor — the baked matrix already handles scaling, so the attribute
-  was double-compensated). The baked stroke is now `strokeWidth · scale`
-  canvas units; `minDotRadius` for decorative fill dots was updated to the
-  same convention (`strokeWidth / 2`).
+## 2026-09-19
 
-### Changed
-- Swatch grid row order is now shuffled on every page load: hue rows
-  no longer appear alphabetically but in a random order per session.
-  Shades stay sorted 100–900 within each row; white/black neutral extras
-  always remain last.
-- Palette logic extracted from `script.js` into `docs/lib/palette-lib.js`
-  (`window.faviconPaletteLib`, IIFE like the other `lib/*.js` files). The
-  component's `paletteLib` seam is unchanged; the lib is now also consumed
-  externally by the portfolio's project generator, which loads this file from
-  raw.githubusercontent.com. `randomPair` gained optional
-  `{ shadeRange: [min, max] }` (clamp both ends) and `{ seed }`
-  (deterministic FNV-1a–seeded draws) options — the UI continues to use the
-  default full 100–900 unseeded range (`tests/palette-lib.test.mjs`).
+- Layout rework: sticky app header and dashboard-style grid.
 
-### Added
-- Material color palette picker: all three colors (Start, End, Icon) are now
-  chosen from a swatch grid built from the Material Colors palette
-  (vendored at `docs/lib/material-colors.js`, shades 100–900 only), with
-  white and black as neutral extras (`tests/palette-lib.test.mjs`).
-- Shared swatch grid in a new "Colors" section: three color-target rows
-  (ring marks the active target) write to one shared grid.
-- 🎲 Random palette button + randomized defaults: background pair is drawn
-  from one chromatic hue, exactly two shade steps apart (direction limited
-  to valid shades); Icon Color is never randomized.
-- Role badges on swatches: a swatch already assigned to a color target shows
-  a small `S` (Start), `E` (End) and/or `I` (Icon) letter.
-- **Mouse mode** (default on load): with no color target pinned, a swatch
-  click uses the mouse button to pick the target — left = Start, right =
-  End, middle = Icon. Pinned-mode (click a target row) still writes only to
-  that target; clicking it again releases back to mouse mode.
+## 2026-09-18
 
-### Changed
-- **BREAKING**: Native free-form color pickers (`<input type="color">`) have
-  been removed — colors are limited to the vendored Material palette plus
-  white/black. Custom hex values are no longer selectable.
-- Default `iconColor` changed from `#f5f5f5` to `#ffffff` (neutral white).
-- Default background colors are now randomized on every page load instead of
-  fixed to blue/violet.
-- White/black neutral extras now appear **last** in the swatch grid (was
-  first).
-- Color target rows are compact side-by-side buttons labelled Start / End /
-  Icon; an active target is highlighted with the primary ring.
+- Swatch grid hue row order is shuffled on every page load (shades stay sorted 100–900 within each row; neutrals always last).
+
+## 2026-09-17
+
+- Palette logic extracted to `docs/lib/palette-lib.js` (IIFE, like the other `lib/*.js` files). `randomPair` gained `shadeRange` (clamped) and `seed` (deterministic FNV-1a draw) options; the UI keeps the default full range. The lib is also consumed externally by the portfolio's project generator.
+
+## 2026-09-16
+
+- Pretty-print emitted SVG: one element per line.
+- 🎲 random palette button moved into the "Colors" section header as a compact icon button.
+- Clamped tiny filled circles to a minimum radius for favicon legibility.
+
+## 2026-09-15
+
+- Emit the canonical favicon format: a single `<path id="icon">` with all transforms baked into the path data.
+- Default icon size 24, centered on the 32x32 canvas.
+- Colors chosen from a vendored Material Colors palette instead of free-form color pickers (**breaking**: custom hex values no longer available). Shared swatch grid for three color targets, role badges (S/E/I), mouse mode (left/right/middle click when no target is pinned) and a 🎲 button drawing the background pair from one hue. White/black neutrals always last.
+- Default icon color changed to `#ffffff`; background randomized on every page load.
+- Added agent instructions: issue tracking, triage labels, domain docs.
+
+## 2025-10-25
+
+- Refactor to Alpine.js: reactive state, computed preview SVG and filtered icon list, icon positioning controls.
+- Optimized SVG loading from the Lucide library; README updated.
+
+## 2025-07-26
+
+- Icon search placeholder now mentions Lucide icons.
+
+## 2025-07-03
+
+- Added a README with features and usage instructions.
+
+## 2025-06-28
+
+- Minor code cleanup.
+
+## 2025-06-27
+
+- Fixes for uploaded-SVG controls and `stroke-linecap`.
+
+## 2025-06-26
+
+- Custom SVG upload with path extraction.
+- Fixes: SVG upload and rotation, stroke width and fill for uploaded SVGs, Lucide icon color and `stroke-linecap`.
+
+## 2025-06-22
+
+- Refactor: use Lucide icon references.
+
+## 2025-06-21
+
+- Initial favicon generator (started from vite_react_shadcn_ts).
+- Fixes: color preview visibility and icon centering.
+- Enhanced icon customization and preview.
