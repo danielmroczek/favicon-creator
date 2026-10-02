@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-02
+
+- Icon metadata expanded: nine edit-state fields (`gradientAngle`, `borderRadius`, `strokeWidth`, `strokeLinecap`, `absoluteStrokeWidth`, `iconX`, `iconY`, `iconSize`, `iconRotation`) are now emitted in `<metadata>` **only when they differ from the UI default**, keeping metadata compact for the common case (ADR 0007).
+
 ## 2026-09-30
 
 - Favicons now embed icon metadata in a `<metadata>` element (namespaced XML, `fc:` prefix): `iconFamily`, `iconName`, `gradientStart`, `gradientEnd`, `iconColor`. Informational only (ADR 0007).
