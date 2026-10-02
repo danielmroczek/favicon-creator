@@ -115,13 +115,36 @@
     // Metadata: always emitted as the first child of <svg> (before <defs>).
     // XML elements with a namespace — informational, not a round-trip
     // contract (see ADR 0007).
+    //
+    // "Always" fields (icon provenance + colours) are emitted regardless
+    // of value.  All other edit-state fields are emitted only when they
+    // differ from the UI default — this keeps the metadata compact while
+    // still capturing every non-default tweak for future "load back into
+    // the generator" functionality.
     const metaNs = 'https://danielmroczek.github.io/favicon-creator';
+    const metaElements = [];
+    const metaPush = (tag, value) => metaElements.push(`    <fc:${tag}>${value}</fc:${tag}>`);
+
+    // Always-emitted fields.
+    metaPush('iconFamily', iconFamily ?? '');
+    metaPush('iconName', iconName ?? '');
+    metaPush('gradientStart', color1);
+    metaPush('gradientEnd', color2);
+    metaPush('iconColor', state.iconColor ?? '#f5f5f5');
+
+    // Conditional fields: emitted only when non-default.
+    if (gradientAngle !== 315) metaPush('gradientAngle', gradientAngle);
+    if (borderRadius !== 4)    metaPush('borderRadius', borderRadius);
+    if (strokeWidth !== 2)     metaPush('strokeWidth', strokeWidth);
+    if (strokeLinecap !== 'round') metaPush('strokeLinecap', strokeLinecap);
+    if (absoluteStrokeWidth)   metaPush('absoluteStrokeWidth', 'true');
+    if (iconX !== 4)           metaPush('iconX', iconX);
+    if (iconY !== 4)           metaPush('iconY', iconY);
+    if (iconSize !== 24)       metaPush('iconSize', iconSize);
+    if (iconRotation !== 0)    metaPush('iconRotation', iconRotation);
+
     parts.push(`  <metadata xmlns:fc="${metaNs}">`);
-    parts.push(`    <fc:iconFamily>${iconFamily ?? ''}</fc:iconFamily>`);
-    parts.push(`    <fc:iconName>${iconName ?? ''}</fc:iconName>`);
-    parts.push(`    <fc:gradientStart>${color1}</fc:gradientStart>`);
-    parts.push(`    <fc:gradientEnd>${color2}</fc:gradientEnd>`);
-    parts.push(`    <fc:iconColor>${state.iconColor ?? '#f5f5f5'}</fc:iconColor>`);
+    parts.push(metaElements.join('\n'));
     parts.push(`  </metadata>`);
     parts.push('');
 
