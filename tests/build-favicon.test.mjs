@@ -213,8 +213,9 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   assert.ok(svg.includes('stroke-width="2"'), 'absolute mode ignores iconSize entirely');
 }
 
-// ── Metadata: always emitted, XML with namespace, first child of <svg> ──────
+// ── Metadata: always-emitted fields, conditional fields omitted at defaults ─
 {
+  // All values at their UI defaults → only the 5 always-emitted fields.
   const svg = buildFaviconSvg({
     color1: '#3b82f6',
     color2: '#1d4ed8',
@@ -222,10 +223,11 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     borderRadius: 4,
     strokeWidth: 2,
     strokeLinecap: 'round',
-    iconX: 5,
-    iconY: 5,
-    iconSize: 22,
+    iconX: 4,
+    iconY: 4,
+    iconSize: 24,
     iconRotation: 0,
+    absoluteStrokeWidth: false,
     iconFamily: 'lucide',
     iconName: 'arrow-right',
     iconColor: '#ffffff',
@@ -233,18 +235,27 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     fillSubpaths: [],
   });
 
-  // Metadata is the first child of <svg>, before <defs>.
-  assert.ok(svg.includes('<metadata'), 'metadata element present');
-  // Namespace declared on <metadata>.
   const ns = 'https://danielmroczek.github.io/favicon-creator';
+  assert.ok(svg.includes('<metadata'), 'metadata element present');
   assert.ok(svg.includes(`xmlns:fc="${ns}"`), 'favicon-creator namespace declared');
-  // XML elements carry the values.
+
+  // Always-emitted fields.
   assert.ok(svg.includes('<fc:iconFamily>lucide</fc:iconFamily>'), 'iconFamily element');
   assert.ok(svg.includes('<fc:iconName>arrow-right</fc:iconName>'), 'iconName element');
   assert.ok(svg.includes('<fc:gradientStart>#3b82f6</fc:gradientStart>'), 'gradientStart element');
   assert.ok(svg.includes('<fc:gradientEnd>#1d4ed8</fc:gradientEnd>'), 'gradientEnd element');
   assert.ok(svg.includes('<fc:iconColor>#ffffff</fc:iconColor>'), 'iconColor element');
-  assert.ok(svg.includes('</metadata>'), 'metadata element closed');
+
+  // Conditional fields NOT emitted when at defaults.
+  assert.ok(!svg.includes('fc:gradientAngle'), 'default gradientAngle not in metadata');
+  assert.ok(!svg.includes('fc:borderRadius'), 'default borderRadius not in metadata');
+  assert.ok(!svg.includes('fc:strokeWidth'), 'default strokeWidth not in metadata');
+  assert.ok(!svg.includes('fc:strokeLinecap'), 'default strokeLinecap not in metadata');
+  assert.ok(!svg.includes('fc:absoluteStrokeWidth'), 'default absoluteStrokeWidth not in metadata');
+  assert.ok(!svg.includes('fc:iconX'), 'default iconX not in metadata');
+  assert.ok(!svg.includes('fc:iconY'), 'default iconY not in metadata');
+  assert.ok(!svg.includes('fc:iconSize'), 'default iconSize not in metadata');
+  assert.ok(!svg.includes('fc:iconRotation'), 'default iconRotation not in metadata');
 
   // Metadata appears before <defs> — first child of <svg>.
   const metaIdx = svg.indexOf('<metadata');
@@ -252,19 +263,20 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   assert.ok(metaIdx < defsIdx, 'metadata comes before defs');
 }
 
-// ── Metadata: empty elements for unknown icon (custom SVG) ──────────────────
+// ── Metadata: conditional fields emitted when non-default ───────────────────
 {
   const svg = buildFaviconSvg({
     color1: '#000',
     color2: '#333',
-    gradientAngle: 0,
-    borderRadius: 4,
-    strokeWidth: 2,
-    strokeLinecap: 'round',
-    iconX: 5,
-    iconY: 5,
-    iconSize: 22,
-    iconRotation: 0,
+    gradientAngle: 90,
+    borderRadius: 8,
+    strokeWidth: 1.5,
+    strokeLinecap: 'square',
+    iconX: 2,
+    iconY: 6,
+    iconSize: 20,
+    iconRotation: 45,
+    absoluteStrokeWidth: true,
     iconFamily: 'custom',
     iconName: null,
     iconColor: '#f5f5f5',
@@ -272,8 +284,20 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     fillSubpaths: [],
   });
 
+  // Always-emitted.
   assert.ok(svg.includes('<fc:iconFamily>custom</fc:iconFamily>'), 'custom icon family');
   assert.ok(svg.includes('<fc:iconName></fc:iconName>'), 'null iconName → empty element');
+
+  // Conditional fields — all non-default, all present.
+  assert.ok(svg.includes('<fc:gradientAngle>90</fc:gradientAngle>'), 'non-default gradientAngle');
+  assert.ok(svg.includes('<fc:borderRadius>8</fc:borderRadius>'), 'non-default borderRadius');
+  assert.ok(svg.includes('<fc:strokeWidth>1.5</fc:strokeWidth>'), 'non-default strokeWidth');
+  assert.ok(svg.includes('<fc:strokeLinecap>square</fc:strokeLinecap>'), 'non-default strokeLinecap');
+  assert.ok(svg.includes('<fc:absoluteStrokeWidth>true</fc:absoluteStrokeWidth>'), 'absoluteStrokeWidth=true');
+  assert.ok(svg.includes('<fc:iconX>2</fc:iconX>'), 'non-default iconX');
+  assert.ok(svg.includes('<fc:iconY>6</fc:iconY>'), 'non-default iconY');
+  assert.ok(svg.includes('<fc:iconSize>20</fc:iconSize>'), 'non-default iconSize');
+  assert.ok(svg.includes('<fc:iconRotation>45</fc:iconRotation>'), 'non-default iconRotation');
 }
 
 // ── Metadata: always emitted even without iconFamily/iconName ───────────────
@@ -285,9 +309,9 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     borderRadius: 4,
     strokeWidth: 2,
     strokeLinecap: 'round',
-    iconX: 5,
-    iconY: 5,
-    iconSize: 22,
+    iconX: 4,
+    iconY: 4,
+    iconSize: 24,
     iconRotation: 0,
     // No iconFamily / iconName → defaults to null (empty element)
     strokeSubpaths: ['M1 1L2 2'],
@@ -297,6 +321,8 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   assert.ok(svg.includes('<metadata'), 'metadata element always emitted');
   assert.ok(svg.includes('<fc:iconFamily></fc:iconFamily>'), 'null iconFamily → empty element');
   assert.ok(svg.includes('<fc:iconName></fc:iconName>'), 'null iconName → empty element');
+  // gradientAngle=0 is non-default (315), so it should appear.
+  assert.ok(svg.includes('<fc:gradientAngle>0</fc:gradientAngle>'), 'gradientAngle=0 is non-default, emitted');
 }
 
 console.log('tests/build-favicon.test.mjs — all assertions passed');
