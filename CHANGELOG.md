@@ -2,6 +2,12 @@
 
 ## 2026-10-10
 
+- **Gradient Angle zero reindex** (breaking for metadata readers): the
+  user-facing 0° is now the classic diagonal (top-left → bottom-right —
+  formerly displayed as 315°). Same visuals, same layout, just a friendlier
+  zero point; the slider's default value is 0 and `fc:gradientAngle` is
+  omitted from metadata only at 0. Values emitted in metadata keep their
+  user-facing meaning.
 - Fixed: Tabler tiles in the icon search grid ignored the Stroke Width
   slider. Tabler bodies carry an INLINE `stroke-width="2"` attribute which
   overrides the grid wrapper's inherited value; the new

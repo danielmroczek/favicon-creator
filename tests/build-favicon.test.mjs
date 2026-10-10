@@ -218,7 +218,7 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   const svg = buildFaviconSvg({
     color1: '#3b82f6',
     color2: '#1d4ed8',
-    gradientAngle: 315,
+    gradientAngle: 0, // user-facing default: the TL→BR diagonal
     borderRadius: 4,
     strokeWidth: 2,
     strokeLinecap: 'round',
@@ -245,7 +245,7 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   assert.ok(svg.includes('<fc:iconColor>#ffffff</fc:iconColor>'), 'iconColor element');
 
   // Conditional fields NOT emitted when at defaults.
-  assert.ok(!svg.includes('fc:gradientAngle'), 'default gradientAngle not in metadata');
+  assert.ok(!svg.includes('fc:gradientAngle'), 'default gradientAngle (0) not in metadata');
   assert.ok(!svg.includes('fc:borderRadius'), 'default borderRadius not in metadata');
   assert.ok(!svg.includes('fc:strokeWidth'), 'default strokeWidth not in metadata');
   assert.ok(!svg.includes('fc:strokeLinecap'), 'default strokeLinecap not in metadata');
@@ -300,7 +300,7 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   const svg = buildFaviconSvg({
     color1: '#000',
     color2: '#000',
-    gradientAngle: 0,
+    gradientAngle: 315, // non-default under the new 0-based semantics
     borderRadius: 4,
     strokeWidth: 2,
     strokeLinecap: 'round',
@@ -316,11 +316,10 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   assert.ok(svg.includes('<metadata'), 'metadata element always emitted');
   assert.ok(svg.includes('<fc:iconFamily></fc:iconFamily>'), 'null iconFamily → empty element');
   assert.ok(svg.includes('<fc:iconName></fc:iconName>'), 'null iconName → empty element');
-  // gradientAngle=0 is non-default (315), so it should appear.
-  assert.ok(svg.includes('<fc:gradientAngle>0</fc:gradientAngle>'), 'gradientAngle=0 is non-default, emitted');
+  // gradientAngle=315 is non-default (the user-facing default is 0 = the
+  // top-left → bottom-right diagonal), so it is emitted as-is.
+  assert.ok(svg.includes('<fc:gradientAngle>315</fc:gradientAngle>'), 'gradientAngle=315 is non-default, emitted');
 }
-
-console.log('tests/build-favicon.test.mjs — all assertions passed');
 
 // ── Metadata: tabler family carried through (second icon family) ────────────
 {

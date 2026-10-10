@@ -36,9 +36,17 @@
     return compose(compose([1, 0, 0, 1, cx, cy], rot), [1, 0, 0, 1, -cx, -cy]);
   }
 
-  /** Gradient angle (degrees) → the x1/y1/x2/y2 component stops. */
+  /**
+   * Gradient angle (degrees) → the x1/y1/x2/y2 component stops.
+   *
+   * USER-FACING ZERO: 0° is the classic diagonal (top-left → bottom-right —
+   * internally 225° in the pre-2026-10 convention where 90° would be the
+   * diagonal). Internally still measured as a rotation from "to top-right",
+   * shifted by +225° so the VISUALS are identical to the old 315° default —
+   * only the displayed number and the metadata default changed to 0.
+   */
   function gradientStops(angle) {
-    const radians = (angle - 90) * Math.PI / 180;
+    const radians = (angle + 225) * Math.PI / 180;
     const x1 = Math.round((1 + Math.cos(radians)) * 50);
     const y1 = Math.round((1 + Math.sin(radians)) * 50);
     const x2 = Math.round((1 - Math.cos(radians)) * 50);
@@ -158,7 +166,7 @@
     metaPush('iconColor', state.iconColor ?? '#f5f5f5');
 
     // Conditional fields: emitted only when non-default.
-    if (gradientAngle !== 315) metaPush('gradientAngle', gradientAngle);
+    if (gradientAngle !== 0) metaPush('gradientAngle', gradientAngle);
     if (borderRadius !== 4)    metaPush('borderRadius', borderRadius);
     if (strokeWidth !== 2)     metaPush('strokeWidth', strokeWidth);
     if (strokeLinecap !== 'round') metaPush('strokeLinecap', strokeLinecap);

@@ -51,7 +51,7 @@ function faviconCreator() {
     return {
         color1: '#2196f3',   // replaced by randomPalette() in init()
         color2: '#1e88e5',
-        gradientAngle: 315,
+        gradientAngle: 0,    // user-facing 0° = top-left → bottom-right diagonal (default)
         borderRadius: 4,
         iconColor: '#ffffff',  // Neutral Extras white — never randomized
         strokeWidth: 2,
