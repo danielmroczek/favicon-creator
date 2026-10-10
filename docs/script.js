@@ -62,7 +62,7 @@ function faviconCreator() {
         // side); non-square customs keep their aspect ratio (lib/favicon.js).
         iconX: 0,
         iconY: 0,
-        iconSize: 24,
+        iconSize: 21,
         iconRotation: 0,
         iconSearch: '',
         currentIcon: 'lucide:house',
