@@ -161,12 +161,166 @@
     }
   }
 
+  /**
+   * Bounding box { x, y, w, h } of a path's ACTUAL geometry — measured, not
+   * taken from any declared viewBox. Lines/beziers/arcs are included via
+   * svgpath segment iteration (curves sampled at 8 points per segment, arcs
+   * via their center-parameterization extrema + samples), so a small glyph
+   * drawn inside a large viewBox reports its true size. Control points are
+   * NOT counted (that would overestimate); sampling error stays under ~0.5%.
+   * Returns null for empty/invalid paths.
+   */
+  function pathBBox(d) {
+    const svgpath = typeof window !== 'undefined' ? window.svgpath : null;
+    if (!svgpath || !d) return null;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    const take = (x, y) => {
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+    };
+    // Sample a cubic curve segment [p0, c1, c2, p1].
+    const sampleCubic = (p0, c1, c2, p1) => {
+      for (let i = 1; i <= 8; i++) {
+        const t = i / 8;
+        const mt = 1 - t;
+        take(
+          mt * mt * mt * p0[0] + 3 * mt * mt * t * c1[0] + 3 * mt * t * t * c2[0] + t * t * t * p1[0],
+          mt * mt * mt * p0[1] + 3 * mt * mt * t * c1[1] + 3 * mt * t * t * c2[1] + t * t * t * p1[1]
+        );
+      }
+    };
+    // Sample a quadratic segment [p0, c, p1].
+    const sampleQuad = (p0, c, p1) => {
+      for (let i = 1; i <= 8; i++) {
+        const t = i / 8;
+        const mt = 1 - t;
+        take(
+          mt * mt * p0[0] + 2 * mt * t * c[0] + t * t * p1[0],
+          mt * mt * p0[1] + 2 * mt * t * c[1] + t * t * p1[1]
+        );
+      }
+    };
+    // Elliptical arc (endpoint parameterization, per SVG spec): include the
+    // axis-aligned extrema of the swept arc plus sampled points between them.
+    const sampleArc = (p0, seg) => {
+      const [, rx0, ry0, xRot, largeArc, sweep, x1, y1] = seg;
+      const phi = (xRot * Math.PI) / 180;
+      const cosP = Math.cos(phi), sinP = Math.sin(phi);
+      // Convert to center parameterization (F.6.5).
+      const dx2 = (p0[0] - x1) / 2, dy2 = (p0[1] - y1) / 2;
+      const x1p = cosP * dx2 + sinP * dy2;
+      const y1p = -sinP * dx2 + cosP * dy2;
+      const rx = Math.abs(rx0), ry = Math.abs(ry0);
+      const lambda = (x1p * x1p) / (rx * rx) + (y1p * y1p) / (ry * ry);
+      const rxUse = lambda > 1 ? Math.sqrt(lambda) * rx : rx;
+      const ryUse = lambda > 1 ? Math.sqrt(lambda) * ry : ry;
+      const sign = largeArc !== sweep ? 1 : -1;
+      const num = rxUse * rxUse * ryUse * ryUse - rxUse * rxUse * y1p * y1p - ryUse * ryUse * x1p * x1p;
+      const den = rxUse * rxUse * y1p * y1p + ryUse * ryUse * x1p * x1p;
+      const co = sign * Math.sqrt(Math.max(0, num / den));
+      const cxp = (co * rxUse * y1p) / ryUse;
+      const cyp = (-co * ryUse * x1p) / rxUse;
+      const cx = cosP * cxp - sinP * cyp + (p0[0] + x1) / 2;
+      const cy = sinP * cxp + cosP * cyp + (p0[1] + y1) / 2;
+      const theta1 = Math.atan2((y1p - cyp) / ryUse, (x1p - cxp) / rxUse);
+      const theta2 = Math.atan2((-y1p - cyp) / ryUse, (-x1p - cxp) / rxUse);
+      let dTheta = theta2 - theta1;
+      if (!sweep && dTheta > 0) dTheta -= 2 * Math.PI;
+      if (sweep && dTheta < 0) dTheta += 2 * Math.PI;
+      // Axis-aligned extrema of the ellipse in user space occur at angles
+      // where the derivative flips sign — check them and sampled points.
+      const pts = (angle) => {
+        const ex = rxUse * Math.cos(angle), ey = ryUse * Math.sin(angle);
+        return [cosP * ex - sinP * ey + cx, sinP * ex + cosP * ey + cy];
+      };
+      for (let i = 0; i <= 16; i++) take(...pts(theta1 + (dTheta * i) / 16));
+      for (let k = 0; k < 4; k++) {
+        const t = theta1 + ((k * Math.PI) / 2) * (dTheta >= 0 ? 1 : -1);
+        if ((t - theta1) * (t - theta2) <= 0 || Math.abs(dTheta) >= 2 * Math.PI) take(...pts(t));
+      }
+      take(x1, y1);
+    };
+    try {
+      // Work on ABSOLUTE segments and track the previous control points so
+      // S/T reflections are resolved exactly (svgpath.abs() alone doesn't
+      // rewrite S/T into C/Q).
+      let lastC2 = null;   // second control point of the last C
+      let lastQc = null;   // control point of the last Q
+      let cur = [0, 0];
+      const toCubic = (seg) => {           // normalize S → C
+        if (seg[0] === 'S') {
+          const refl = lastC2 ? [2 * cur[0] - lastC2[0], 2 * cur[1] - lastC2[1]] : [...cur];
+          lastC2 = [seg[3], seg[4]];
+          return ['C', refl[0], refl[1], seg[1], seg[2], seg[3], seg[4]];
+        }
+        lastC2 = [seg[3], seg[4]];
+        return seg;
+      };
+      const toQuad = (seg) => {            // normalize T → Q
+        if (seg[0] === 'T') {
+          const refl = lastQc ? [2 * cur[0] - lastQc[0], 2 * cur[1] - lastQc[1]] : [...cur];
+          lastQc = [seg[1], seg[2]];
+          return ['Q', refl[0], refl[1], seg[1], seg[2]];
+        }
+        lastQc = [seg[1], seg[2]];
+        return seg;
+      };
+      svgpath(d).abs().iterate((seg, index) => {
+        const [cmd, ...args] = seg;
+        switch (cmd) {
+          case 'M': case 'L':
+            take(args[0], args[1]);
+            cur = [args[0], args[1]];
+            break;
+          case 'H':
+            take(args[0], cur[1]);
+            cur = [args[0], cur[1]];
+            break;
+          case 'V':
+            take(cur[0], args[0]);
+            cur = [cur[0], args[0]];
+            break;
+          case 'C':
+          case 'S':
+          case 'Q':
+          case 'T': {
+            // Normalize S→C and T→Q, then sample exactly like direct C/Q.
+            const norm = cmd === 'S' ? toCubic(seg) : cmd === 'T' ? toQuad(seg) : seg;
+            if (norm[0] === 'C') {
+              sampleCubic(cur, [norm[1], norm[2]], [norm[3], norm[4]], [norm[5], norm[6]]);
+              cur = [norm[5], norm[6]];
+            } else {
+              sampleQuad(cur, [norm[1], norm[2]], [norm[3], norm[4]]);
+              cur = [norm[3], norm[4]];
+            }
+            break;
+          }
+          case 'A':
+            sampleArc(cur, seg);
+            cur = [args[5], args[6]];
+            break;
+          case 'Z':
+            break;
+        }
+      });
+    } catch (error) {
+      console.warn('pathBBox failed:', error);
+      return null;
+    }
+    if (minX === Infinity) return null;
+    return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+  }
+
   window.faviconPathLib = {
     compose,
     parseTransform,
     accumulatedMatrix,
     shapeElementToD,
     bakeMatrix,
+    pathBBox,
     isIdentity,
   };
 })();

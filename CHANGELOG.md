@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-10-10
+
+- **Center-based icon placement** (breaking): the icon is always centered on
+  the 32×32 canvas; the X/Y sliders are now **offsets from the center**
+  (−24..24 px, default 0 = perfectly centered — the slider's midpoint). The
+  "Center Icon" button and the two-column X/Y layout are gone (full-width
+  sliders instead).
+- **Icon Size = artwork's MAXIMUM dimension** (breaking): the fit target is the
+  **measured bounding box of the actual artwork** (new `pathBBox` in
+  `lib/path-lib.js`), not the declared viewBox — Tabler `-small`/`-xs` glyphs
+  (drawn intentionally tiny inside the 24×24 grid) now fill the slider value,
+  and non-square artwork keeps its aspect ratio around the center (2:3 logo at
+  24 renders 16×24, centered). The contract is GEOMETRIC: the bounding box of
+  the artwork's path data is sized to the slider value — stroke ink (round/
+  square linecaps, thick strokes on tiny glyphs) can extend up to half a stroke
+  width past the box and is not part of the fit. Lucide/Tabler regular icons are
+  unaffected (full-
+  24 artwork → same scale as before). Fallback to the declared `viewBox`
+  (`iconBasis` from `parseViewBoxBasis`) when artwork measurement is impossible.
+- Metadata `fc:iconX`/`fc:iconY` defaults changed from `4` to `0`
+  (offset semantics) — serialized only when non-zero, as before (ADR 0007).
+
 ## 2026-10-02
 
 - Icon metadata expanded: nine edit-state fields (`gradientAngle`, `borderRadius`, `strokeWidth`, `strokeLinecap`, `absoluteStrokeWidth`, `iconX`, `iconY`, `iconSize`, `iconRotation`) are now emitted in `<metadata>` **only when they differ from the UI default**, keeping metadata compact for the common case (ADR 0007).

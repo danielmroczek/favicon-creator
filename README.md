@@ -13,7 +13,15 @@ A simple, browser-based tool for creating custom favicons for your websites. Des
   click a target row to pin just that one, and click it again to release.
 - **Icon Library**: Instant search through 1000+ Lucide icons with zero loading time, plus the **Tabler** family (6 000+ icons) in the same search grid — tiles carry an `L`/`T` badge. Tabler icons are stroke-based in a 24×24 viewBox, so the Stroke Width slider drives the real outline thickness and stroke subpaths merge exactly like Lucide. The full Tabler collection JSON is fetched once from jsDelivr (`@iconify-json/tabler`, ~400 KB gzipped) and then served entirely from memory — no per-icon requests, no rate limits.
 - **Custom SVG Support**: Upload your own SVG files to use as favicons
-- **Size & Position Controls**: Adjust the size and position of your icon elements
+- **Size & Position Controls**: Adjust the size and position of your icon elements.
+  The icon is always **centered** on the canvas: the **Icon Size** slider sets the
+  artwork's maximum dimension — measured from the actual drawing, so tiny
+  Tabler `-small`/`-xs` glyphs fill the slider value like any other icon, and
+  non-square artwork keeps its aspect ratio around the center. Size matches the
+  geometry: with round/square linecaps the stroke ink can extend up to half a
+  stroke width past the box. The **X/Y Offset**
+  sliders (−24..24, default 0) nudge it from the center — with both at 0 the icon
+  is perfectly centered, no button needed.
 - **Canonical Output**: Emits favicons that conform to the canonical favicon format
   (see [danielmroczek.github.io/docs/favicon-format.md](https://github.com/danielmroczek/danielmroczek.github.io/blob/main/docs/favicon-format.md))
 - **Single Icon Path**: Multi-path icons (including all Lucide icons) are automatically
@@ -32,7 +40,8 @@ Visit the [live demo](https://danielmroczek.github.io/favicon-creator/) to try i
   right = End, middle = Icon. Swatches already in use show a small `S`/`E`/`I`
   badge. Click a target row (Start / End / Icon) to pin writes to that target;
   click it again to release.
-3. **Adjust Positioning**: Use the controls to position and size your icon
+3. **Adjust Positioning**: The icon starts centered. Use **Icon Size** to scale it
+  symmetrically around the canvas center and **X/Y Offset** to shift it (0 = center).
 4. **Download**: Click the download button to get your favicon files
 
 ## Contributing

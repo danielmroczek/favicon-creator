@@ -25,6 +25,7 @@ const {
   shapeElementToD,
   bakeMatrix,
   isIdentity,
+  pathBBox,
 } = mainWindow.faviconPathLib;
 assert.ok(shapeElementToD, 'library did not expose its API');
 
@@ -201,6 +202,54 @@ function el(tagName, attrs) {
   assert.deepEqual(receivedMatrix, [1, 0, 0, 1, 5, 6], 'matrix forwarded to svgpath');
   assert.equal(result.baked, true);
   mainWindow.svgpath = undefined;
+}
+
+// ── pathBBox ───────────────────────────────────────────────────────────────
+// Uses the real svgpath segment iteration — load the vendored bundle via the
+// shared helper.
+{
+  const { loadVendoredSvgpath } = await import('./lib/load-svgpath.mjs');
+  mainWindow.svgpath = loadVendoredSvgpath();
+}
+
+const { pathBBox: measurePath } = mainWindow.faviconPathLib;
+
+{
+  const b = measurePath('M1 2L4 6');
+  assert.ok(Math.abs(b.x - 1) < 1e-9 && Math.abs(b.y - 2) < 1e-9 && Math.abs(b.w - 3) < 1e-9 && Math.abs(b.h - 4) < 1e-9, 'line bbox exact');
+}
+{
+  // A tiny glyph inside a large grid: bbox reflects ARTWORK, not the grid.
+  const b = measurePath('M6 8L18 16');
+  assert.deepEqual({ x: 6, y: 8, w: 12, h: 8 }, { x: b.x, y: b.y, w: b.w, h: b.h }, 'small glyph reports its true artwork box');
+}
+{
+  // Cubic bezier stays INSIDE its control-point hull: bbox must not use the
+  // control points directly (which would overestimate to w=9).
+  const b = measurePath('M0 0C0 4 4 4 4 0Z');
+  assert.ok(b.w > 2.9 && b.w <= 4 && Math.abs(b.h - 3) < 0.3, `bezier bbox from curve samples, not control points (got w=${b.w.toFixed(2)}, h=${b.h.toFixed(2)})`);
+}
+{
+  // Circular arc (two half-arcs = full circle) — bbox is the full circle.
+  const b = measurePath('M12 3 A9 9 0 1 1 12 21 A9 9 0 1 1 12 3');
+  assert.ok(Math.abs(b.w - 18) < 0.1 && Math.abs(b.h - 18) < 0.1, `full circle bbox (got w=${b.w.toFixed(2)}, h=${b.h.toFixed(2)})`);
+}
+{
+  // Relative commands are normalized to absolute internally.
+  const b = measurePath('m5 5l10 0l0 10l-10 0z');
+  assert.deepEqual({ x: 5, y: 5, w: 10, h: 10 }, { x: b.x, y: b.y, w: b.w, h: b.h }, 'relative commands normalized');
+}
+{
+  // S/T reflection sequences.
+  const b1 = measurePath('M0 0C2 10 4 10 6 0S10 -10 12 0');
+  assert.ok(Number.isFinite(b1.x) && Number.isFinite(b1.h) && b1.h > 0, 'S segments produce a finite bbox');
+  const b2 = measurePath('M0 0Q5 12 10 0T20 0');
+  assert.ok(Number.isFinite(b2.h) && b2.h > 0, 'T segments produce a finite bbox');
+}
+{
+  // Empty and invalid inputs.
+  assert.equal(measurePath(''), null, 'empty path → null');
+  assert.equal(measurePath(null), null, 'null path → null');
 }
 
 console.log('tests/path-lib.test.mjs — all assertions passed');

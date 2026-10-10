@@ -301,10 +301,8 @@ body {
 }
 
 /* Vertical breathing room between consecutive slider rows. Scoped to
-   top-level groups only — inside .position-controls the X/Y pairs are
-   side-by-side columns and must not be vertically offset. */
-.control-group > .range-group + .range-group,
-.control-group >.position-controls + .range-group{
+    direct children of .control-group. */
+.control-group > .range-group + .range-group {
     margin-top: 1rem;
 }
 
@@ -329,34 +327,6 @@ body {
     border: 1px solid var(--pico-border-color);
 }
 
-
-.position-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-}
-
-/* "Y Position" sits in the right half of the X/Y sub-grid: right-align its
-   label so it reads as a label for the Y slider, not a caption of the X
-   Position value in the left column. */
-.position-controls > .range-group:last-child > label {
-    text-align: right;
-}
-
-.center-button {
-    background: var(--pico-primary-500);
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    font-size: 0.9rem;
-    margin-top: 1rem;
-    transition: background-color 0.2s ease;
-}
-
-.center-button:hover {
-    background: var(--pico-primary-600);
-}
 
 .control-group-header {
     display: flex;

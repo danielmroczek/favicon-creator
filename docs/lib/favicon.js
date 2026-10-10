@@ -55,7 +55,12 @@
    *   borderRadius        background rect rx
    *   strokeWidth         user's stroke-width (in 24-unit lucide basis)
    *   strokeLinecap       'round' | 'square' | 'butt'
-   *   iconX/iconY/iconSize  icon placement on the 32×32 canvas
+  *   iconX/iconY         pixel offsets from the canvas CENTER (−24..24);
+  *                       0 = the icon stays perfectly centered
+  *   iconSize            the icon's MAXIMUM on-canvas dimension (longer
+  *                       side of the scaled icon)
+  *   iconBasis           the icon's local viewBox {vx, vy, vw, vh};
+  *                       defaults to {0, 0, 24, 24} (Lucide/Tabler basis)
    *   iconRotation        degrees, about the icon's center
    *   absoluteStrokeWidth when true, the stroke keeps a CONSTANT canvas
    *                       thickness (strokeWidth units) regardless of
@@ -72,14 +77,38 @@
     const {
       color1, color2, gradientAngle, borderRadius,
       strokeWidth, strokeLinecap,
-      iconX, iconY, iconSize, iconRotation,
+      iconX, iconY, iconSize, iconRotation, iconBasis,
       absoluteStrokeWidth = false,
       strokeSubpaths = [], fillSubpaths = [],
       iconFamily, iconName,
     } = state;
 
-    // Scale factor from the 24-unit lucide basis to the on-canvas icon size.
-    const scale = iconSize / 24;
+    // The icon's declared local viewBox. Lucide/Tabler live in the square
+    // 24×24 basis; custom uploads may declare any viewBox.
+    const { vx = 0, vy = 0, vw = 24, vh = 24 } = iconBasis || {};
+
+    // Icon Size is the icon's MAXIMUM dimension (user contract): 2:3
+    // artwork at size 24 renders 16×24. The fit target is the artwork's
+    // MEASURED bounding box, not the declared viewBox — Tabler's -small/‑xs
+    // glyphs are drawn intentionally tiny inside the 24×24 grid, so fitting
+    // the declared box would render them at a fraction of the slider value.
+    // When measurement is impossible (svgpath missing, degenerate geometry)
+    // we fall back to the declared viewBox.
+    let fitX = vx, fitY = vy, fitW = vw, fitH = vh;
+    const boxes = [...strokeSubpaths, ...fillSubpaths]
+      .map((d) => (pathLib ? pathLib.pathBBox(d) : null))
+      .filter(Boolean)
+      .filter((b) => b.w > 0 || b.h > 0);
+    if (boxes.length > 0) {
+      const minX = Math.min(...boxes.map((b) => b.x));
+      const minY = Math.min(...boxes.map((b) => b.y));
+      const maxX = Math.max(...boxes.map((b) => b.x + b.w));
+      const maxY = Math.max(...boxes.map((b) => b.y + b.h));
+      fitX = minX; fitY = minY; fitW = maxX - minX; fitH = maxY - minY;
+    }
+
+    // Scale factor from the measured artwork box to the on-canvas icon size.
+    const scale = iconSize / Math.max(fitW, fitH);
     // The matrix is baked into the path data (no transform attribute), so
     // the stroke-width attribute lives in FINAL canvas units.
     //
@@ -91,15 +120,18 @@
     // how big the icon is rendered.
     const bakedStrokeWidth = absoluteStrokeWidth ? strokeWidth : strokeWidth * scale;
 
-    // Combined transform: place the icon (translate + scale its 24-unit
-    // coordinate space onto the canvas), then rotate about its center.
-    // Every matrix is baked into the path data — canonical favicons never
-    // carry a transform attribute (format rule 6).
-    const cx = iconX + iconSize / 2;
-    const cy = iconY + iconSize / 2;
+    // Combined transform: the scaled icon is CENTERED on the 32×32 canvas
+    // (its local center — including a non-zero viewBox origin — maps to
+    // (16,16)), then nudged by the iconX/iconY offsets, and rotated about
+    // that same (offset) center. Every matrix is baked into the path
+    // data — canonical favicons never carry a transform attribute (rule 6).
+    const cx = 16 + iconX;
+    const cy = 16 + iconY;
+    const tx = cx - scale * (fitX + fitW / 2);
+    const ty = cy - scale * (fitY + fitH / 2);
     const matrix = composeAll([
       rotationMatrix(iconRotation, cx, cy),
-      translateScale(iconX, iconY, scale),
+      translateScale(tx, ty, scale),
     ]);
 
     const { x1, y1, x2, y2 } = gradientStops(gradientAngle);
@@ -138,8 +170,8 @@
     if (strokeWidth !== 2)     metaPush('strokeWidth', strokeWidth);
     if (strokeLinecap !== 'round') metaPush('strokeLinecap', strokeLinecap);
     if (absoluteStrokeWidth)   metaPush('absoluteStrokeWidth', 'true');
-    if (iconX !== 4)           metaPush('iconX', iconX);
-    if (iconY !== 4)           metaPush('iconY', iconY);
+    if (iconX !== 0)           metaPush('iconX', iconX);
+    if (iconY !== 0)           metaPush('iconY', iconY);
     if (iconSize !== 24)       metaPush('iconSize', iconSize);
     if (iconRotation !== 0)    metaPush('iconRotation', iconRotation);
 

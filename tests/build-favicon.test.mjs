@@ -8,20 +8,14 @@
 //
 // Run:  node tests/build-favicon.test.mjs
 import assert from 'node:assert/strict';
+import { loadVendoredSvgpath } from './lib/load-svgpath.mjs';
 
-// ── Browser shims ────────────────────────────────────────────────────────────
-const mainWindow = { svgpath: undefined };
+// ── Real svgpath — loaded from the vendored browser bundle ───────────────
+// (see tests/lib/load-svgpath.mjs; keeps baked-coordinate literals below
+// meaningful — the old identity stub passed path data through UNBAKED).
+const mainWindow = {};
 globalThis.window = mainWindow;
-
-// Stub svgpath: identity for our tests (record and pass d through). Baking is
-// exercised separately in tests/path-lib.test.mjs.
-mainWindow.svgpath = function (d) {
-  return {
-    matrix() { return this; },
-    round() { return this; },
-    toString() { return d; },
-  };
-};
+mainWindow.svgpath = loadVendoredSvgpath();
 
 await import('../docs/lib/path-lib.js');
 await import('../docs/lib/favicon.js');
@@ -41,7 +35,9 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     iconY: 5,
     iconSize: 22,
     iconRotation: 0,
-    strokeSubpaths: ['M1 1L2 2', 'M3 3L4 4'],
+    // Artwork spans the full 24-unit basis → measured bbox = (0,0,24,24),
+    // so scale = 22/24 exactly like the classic iconSize/24 ratio.
+    strokeSubpaths: ['M0 0L24 24', 'M0 24L24 0'],
     fillSubpaths: [],
   });
 
@@ -57,7 +53,8 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   assert.equal(svg.match(/<path\b/g).length, 1, 'exactly one path element for stroke icon');
   // iconSize 22 → scale 22/24 → baked stroke = 2·22/24 ≈ 1.8333 (stroke
   // scales WITH the icon; attribute lives in final canvas units).
-  assert.equal((svg.match(/<path\b[^>]*>/g) || [''])[0], '<path id="icon" fill="none" stroke="#f5f5f5" stroke-width="1.8333" stroke-linecap="round" stroke-linejoin="round" d="M1 1L2 2M3 3L4 4"/>', 'merged subpaths concatenate directly in d');
+  // Icon center (12,12) maps to (16+5, 16+5): corners 0→10, 24→32.
+  assert.equal((svg.match(/<path\b[^>]*>/g) || [''])[0], '<path id="icon" fill="none" stroke="#f5f5f5" stroke-width="1.8333" stroke-linecap="round" stroke-linejoin="round" d="M10 10L32 32M10 32L32 10"/>', 'merged subpaths concatenate in baked coordinates (22px icon at offsets 5,5)');
   // Ends with the closed root tag.
   assert.ok(svg.endsWith('</svg>'), 'root element closed');
 }
@@ -147,7 +144,8 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     iconY: 5,
     iconSize: 24, // scale factor 1 → stroke stays 2
     iconRotation: 0,
-    strokeSubpaths: ['M1 1L2 2'],
+    // Artwork spans the full 24-unit basis → measured scale = 24/24 = 1.
+    strokeSubpaths: ['M0 0L24 24'],
     fillSubpaths: [],
   });
   assert.ok(svg.includes('stroke-width="2"'), '24-unit icon keeps 1:1 stroke width');
@@ -165,7 +163,8 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     iconY: 5,
     iconSize: 12, // scale factor 0.5 → baked stroke = 2·0.5 = 1
     iconRotation: 0,
-    strokeSubpaths: ['M1 1L2 2'],
+    // Artwork spans the full 24-unit basis → measured scale = 12/24 = 0.5.
+    strokeSubpaths: ['M0 0L24 24'],
     fillSubpaths: [],
   });
   // No transform attribute exists, so stroke-width lives in FINAL canvas
@@ -223,8 +222,8 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     borderRadius: 4,
     strokeWidth: 2,
     strokeLinecap: 'round',
-    iconX: 4,
-    iconY: 4,
+    iconX: 0,
+    iconY: 0,
     iconSize: 24,
     iconRotation: 0,
     absoluteStrokeWidth: false,
@@ -309,11 +308,11 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     borderRadius: 4,
     strokeWidth: 2,
     strokeLinecap: 'round',
-    iconX: 4,
-    iconY: 4,
+    // No iconFamily / iconName → defaults to null (empty element)
+    iconX: 0,
+    iconY: 0,
     iconSize: 24,
     iconRotation: 0,
-    // No iconFamily / iconName → defaults to null (empty element)
     strokeSubpaths: ['M1 1L2 2'],
     fillSubpaths: [],
   });
@@ -336,8 +335,8 @@ console.log('tests/build-favicon.test.mjs — all assertions passed');
     borderRadius: 4,
     strokeWidth: 2,
     strokeLinecap: 'round',
-    iconX: 4,
-    iconY: 4,
+    iconX: 0,
+    iconY: 0,
     iconSize: 24,
     iconRotation: 0,
     iconFamily: 'tabler',
@@ -350,3 +349,96 @@ console.log('tests/build-favicon.test.mjs — all assertions passed');
   assert.ok(svg.includes('<fc:iconName>heart</fc:iconName>'), 'tabler icon name in metadata');
   assert.ok(!/transform=/.test(svg), 'canonical output stays transform-free');
 }
+
+// ── Icon Size = MAXIMUM dimension; non-square basis keeps aspect ratio ──────
+{
+  // A 2:3 basis at Icon Size 24 must render 16×24, CENTERED on the canvas
+  // (x: 16−8=8, y: 16−12=4 — a point at the local (0,0) corner maps there).
+  const svg = buildFaviconSvg({
+    color1: '#000', color2: '#000', gradientAngle: 315,
+    strokeWidth: 2, strokeLinecap: 'round',
+    iconX: 0, iconY: 0, iconSize: 24, iconRotation: 0,
+    // Artwork drawn in a 16×24 box (2:3) → renders 16×24, centered:
+    // box corners (0,0) → (8,4), (16,24) → (24,28).
+    strokeSubpaths: ['M0 0L16 24 4 6Z'],
+    fillSubpaths: [],
+  });
+  assert.ok(svg.includes('d="M8 4L24 28 12 10Z"'), '2:3 artwork at size 24 renders 16×24, centered');
+  assert.ok(!svg.includes('fc:iconX'), 'centered offsets are the metadata default');
+}
+
+// ── Centered by default (old top-left model would put the icon at 0,0) ──────
+{
+  const svg = buildFaviconSvg({
+    color1: '#000', color2: '#000', gradientAngle: 315,
+    strokeWidth: 2, strokeLinecap: 'round',
+    iconX: 0, iconY: 0, iconSize: 24, iconRotation: 0,
+    // Artwork spans the full 24-unit basis → scale 1, centered:
+    // (0,0) → (4,4), (12,24) → (16,28), (24,0) → (28,4).
+    strokeSubpaths: ['M0 0L12 24 24 0Z'],
+    fillSubpaths: [],
+  });
+  // 24-unit artwork, scale 1, centered → local (0,0) lands at (4,4).
+  assert.ok(svg.includes('d="M4 4L16 28 28 4Z"'), 'X/Y=0 centers the icon on the canvas');
+  assert.ok(!/transform=/.test(svg), 'canonical output stays transform-free');
+}
+
+// ── X/Y offsets are relative to the canvas CENTER ───────────────────────────
+{
+  const svg = buildFaviconSvg({
+    color1: '#000', color2: '#000', gradientAngle: 315,
+    strokeWidth: 2, strokeLinecap: 'round',
+    iconX: 4, iconY: -6, iconSize: 24, iconRotation: 0,
+    // Full-basis artwork, scale 1: centered corner (4,4) + offset (4,−6).
+    strokeSubpaths: ['M0 0L12 24 24 0Z'],
+    fillSubpaths: [],
+  });
+  // Centered position (4,4) shifted by (+4, −6) → (8,−2).
+  assert.ok(svg.includes('d="M8-2L20 22 32-2Z"'), 'offsets shift the icon from the centered position');
+  assert.ok(svg.includes('<fc:iconX>4</fc:iconX>'), 'non-zero iconX in metadata');
+  assert.ok(svg.includes('<fc:iconY>-6</fc:iconY>'), 'negative iconY in metadata');
+}
+
+// ── Fallback: declared basis is the fit target when measurement fails ──────
+{
+  // A degenerate point has NO measurable extent: pathBBox returns w=0,h=0
+  // and the fit picker filters it out → fitX/fitY/fitW/fitH fall back to
+  // the DECLARED basis. A "12 12 24 24" basis maps its center (24,24) to
+  // the canvas center (16,16) at scale 24/24 = 1, so the corner (12,12)
+  // maps to (4,4) — proving the fallback (not the artwork) drove the math.
+  const svg = buildFaviconSvg({
+    color1: '#000', color2: '#000', gradientAngle: 315,
+    strokeWidth: 2, strokeLinecap: 'round',
+    iconX: 0, iconY: 0, iconSize: 24, iconRotation: 0,
+    iconBasis: { vx: 12, vy: 12, vw: 24, vh: 24 },
+    strokeSubpaths: ['M12 12'],
+    fillSubpaths: [],
+  });
+  assert.ok(svg.includes('d="M4 4"'), 'unmeasurable artwork falls back to the declared viewBox for fit + centering');
+  // Sanity: with zero artwork the assembler emits no icon path at all.
+  const empty = buildFaviconSvg({
+    color1: '#000', color2: '#000', gradientAngle: 315,
+    strokeWidth: 2, strokeLinecap: 'round',
+    iconX: 0, iconY: 0, iconSize: 24, iconRotation: 0,
+    strokeSubpaths: [],
+    fillSubpaths: [],
+  });
+  assert.ok(!empty.includes('<path'), 'no artwork → no icon path element');
+}
+
+// ── Non-zero viewBox origin honored for MEASURED artwork ───────────────────
+{
+  // Artwork drawn inside a "12 12 24 24" basis: measured bbox (12,12)-(36,36)
+  // centers (24,24) on (16,16), so (12,12) → (4,4).
+  const svg = buildFaviconSvg({
+    color1: '#000', color2: '#000', gradientAngle: 315,
+    strokeWidth: 2, strokeLinecap: 'round',
+    iconX: 0, iconY: 0, iconSize: 24, iconRotation: 0,
+    iconBasis: { vx: 12, vy: 12, vw: 24, vh: 24 },
+    strokeSubpaths: ['M12 12L24 36 36 12Z'],
+    fillSubpaths: [],
+  });
+  assert.ok(svg.includes('d="M4 4L16 28 28 4Z"'), 'viewBox origin offset is respected when centering');
+}
+
+console.log('tests/build-favicon.test.mjs — all assertions passed');

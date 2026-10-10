@@ -57,13 +57,18 @@ function faviconCreator() {
         strokeWidth: 2,
         strokeLinecap: 'round',
         absoluteStrokeWidth: false,  // Lucide-style: stroke scales with icon by default
-        iconX: 4,
-        iconY: 4,
+        // X/Y are OFFSETS from the canvas center (−24..24 px): 0 keeps the
+        // icon perfectly centered on the 32×32 canvas — no separate "center"
+        // action needed. iconSize is the icon's MAXIMUM dimension (longer
+        // side); non-square customs keep their aspect ratio (lib/favicon.js).
+        iconX: 0,
+        iconY: 0,
         iconSize: 24,
         iconRotation: 0,
         iconSearch: '',
         currentIcon: 'lucide:house',
         customIconSubpaths: null,
+        customIconBasis: null,   // viewBox {vx,vy,vw,vh} of an uploaded SVG (for Icon Size = max dimension)
         allLucideIcons: [],
         popularIcons: ['house', 'heart', 'star', 'user', 'mail', 'phone', 'globe', 'settings'],
         // Tabler (second icon family — see lib/tabler-lib.js): the FULL
@@ -130,6 +135,7 @@ function faviconCreator() {
                 iconX: this.iconX,
                 iconY: this.iconY,
                 iconSize: this.iconSize,
+                iconBasis: isCustom ? this.customIconBasis : null,
                 iconRotation: this.iconRotation,
                 iconFamily: isCustom ? 'custom' : this.currentIconFamily(),
                 iconName: isCustom ? null : this.currentIconBareName(),
@@ -290,6 +296,29 @@ function faviconCreator() {
         selectIcon(iconName) {
             this.currentIcon = iconName;
             this.customIconSubpaths = null;
+            this.customIconBasis = null;
+        },
+
+        /**
+         * Parse an uploaded SVG's viewBox into the {vx, vy, vw, vh} basis
+         * object lib/favicon.js uses to keep the icon's LONGER side equal to
+         * the Icon Size slider. Falls back to null (→ the default 24×24
+         * square basis) when the file declares neither viewBox nor width/height.
+         */
+        parseViewBoxBasis(svgElement) {
+            const raw = (svgElement.getAttribute('viewBox') || '').trim();
+            if (raw) {
+                const nums = raw.split(/[\s,]+/).map(parseFloat).filter(Number.isFinite);
+                if (nums.length >= 4 && nums[2] > 0 && nums[3] > 0) {
+                    return { vx: nums[0], vy: nums[1], vw: nums[2], vh: nums[3] };
+                }
+            }
+            const w = parseFloat(svgElement.getAttribute('width'));
+            const h = parseFloat(svgElement.getAttribute('height'));
+            if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) {
+                return { vx: 0, vy: 0, vw: w, vh: h };
+            }
+            return null;
         },
 
         /**
@@ -334,11 +363,6 @@ function faviconCreator() {
         /** Bare name (no family prefix) of the current icon id. */
         currentIconBareName() {
             return parseIconId(this.currentIcon).bare;
-        },
-
-        centerIcon() {
-            this.iconX = (32 - this.iconSize) / 2;
-            this.iconY = (32 - this.iconSize) / 2;
         },
 
         // ── Tabler family (jsDelivr collection, loaded once) ─────────────
@@ -517,7 +541,10 @@ function faviconCreator() {
 
                 // Store the SUBPATH LISTS (converted + baked) rather than raw
                 // markup — component state mirrors what buildFaviconSvg consumes.
+                // The viewBox is kept too, so the Icon Size slider always
+                // sizes the icon's LONGER side (lib/favicon.js).
                 this.customIconSubpaths = this.subpathsFromSvgMarkup(svgElement.innerHTML);
+                this.customIconBasis = this.parseViewBoxBasis(svgElement);
 
                 if (warnings.length > 0) {
                     alert('Uploaded SVG has patterns that may not survive extraction:\n\n' +

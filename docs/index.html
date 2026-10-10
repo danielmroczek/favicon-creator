@@ -129,21 +129,23 @@
 
       <section class="control-group" aria-labelledby="icon-options-heading">
         <h3 id="icon-options-heading">Icon options</h3>
-        <div class="position-controls">
-          <div class="range-group">
-            <label>X Position</label>
-            <input type="range" x-model.number="iconX" min="0" max="32">
-            <span class="range-value" x-text="iconX"></span>
-          </div>
-          <div class="range-group">
-            <label>Y Position</label>
-            <input type="range" x-model.number="iconY" min="0" max="32">
-            <span class="range-value" x-text="iconY"></span>
-          </div>
+        <!-- X/Y are offsets from the canvas center: 0 = perfectly
+             centered. The slider's midpoint IS the default, so the old
+             "Center Icon" button is unnecessary. -->
+        <div class="range-group">
+          <label>X Offset</label>
+          <input type="range" x-model.number="iconX" min="-24" max="24">
+          <span class="range-value" x-text="iconX"></span>
+        </div>
+        <div class="range-group">
+          <label>Y Offset</label>
+          <input type="range" x-model.number="iconY" min="-24" max="24">
+          <span class="range-value" x-text="iconY"></span>
         </div>
         <div class="range-group">
           <label>Icon Size</label>
-          <input type="range" x-model.number="iconSize" min="4" max="28">
+          <input type="range" x-model.number="iconSize" min="4" max="28"
+            title="Maximum icon dimension — smaller sides keep the icon's aspect ratio. The icon always stays centered on the canvas; X/Y Offset nudge it from there.">
           <span class="range-value" x-text="iconSize"></span>
         </div>
         <div class="range-group">
@@ -169,7 +171,6 @@
             <option value="butt">Butt</option>
           </select>
         </div>
-        <button @click="centerIcon" class="center-button">Center Icon</button>
       </section>
 
       <section class="control-group" aria-labelledby="custom-upload-heading">
