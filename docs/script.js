@@ -407,16 +407,18 @@ function faviconCreator() {
         },
 
         /**
-         * Minimum radius (in the 24-unit local space) for decorative fill
-         * dots, sized to match the outline. The baked stroke renders
-         * `strokeWidth · scale` canvas units thick, while a dot of local
-         * radius r baked through the same matrix is `2r · scale` wide.
-         * Equating them gives r = strokeWidth / 2 — independent of scale,
-         * so a dot always matches the stroke simply by tracking the
-         * Stroke Width slider. At the default (stroke 2) that is exactly 1.
+         * Target radius (in the 24-unit local space) for a small filled dot
+         * so it renders like Lucide's decorative "paint dots". On lucide.dev
+         * those circles carry BOTH fill (currentColor) and the inherited
+         * stroke (currentColor, stroke-width 2), so their rendered diameter
+         * is `2r + strokeWidth` — for r=".5" and stroke 2 that is 3 units.
+         * Our output has no stroke on filled paths, so we grow the radius to
+         * `r + strokeWidth / 2` to reach the same diameter, keeping the dot
+         * tracking the Stroke Width slider. At the default (stroke 2) that is
+         * 1.5 for Lucide's r=".5" dots.
          */
-        minDotRadius() {
-            return this.strokeWidth / 2;
+        minDotRadius(originalRadius) {
+            return (originalRadius || 0) + this.strokeWidth / 2;
         },
 
         /**
@@ -430,10 +432,22 @@ function faviconCreator() {
         clampTinyFilledDot(shape) {
             if (shape.tagName.toLowerCase() !== 'circle') return;
             const r = parseFloat(shape.getAttribute('r'));
-            const minR = this.minDotRadius();
-            if (!Number.isFinite(r) || r <= 0 || r >= minR) return;
-            if ((shape.getAttribute('fill') || '').toLowerCase() === 'none') return;
-            shape.setAttribute('r', String(minR));
+            if (!Number.isFinite(r) || r <= 0) return;
+            // Match Lucide's rendered size: on lucide.dev these dots also
+            // inherit stroke, so 2r + strokeWidth is the effective diameter.
+            const targetR = this.minDotRadius(r);
+            if (r >= targetR) return;
+            // Dots that carry their own stroke already render 2r + strokeWidth
+            // (that's exactly the Lucide look) — leave them untouched. The
+            // extractor normalizes filled shapes to white with no stroke, so a
+            // stroke-less filled dot must grow so its FILLED diameter equals
+            // Lucide's stroked diameter: 2r + strokeWidth → r' = r + sw/2.
+            const fill = (shape.getAttribute('fill') || '').toLowerCase();
+            const stroke = (shape.getAttribute('stroke') || '').toLowerCase();
+            const isStrokedDot = stroke !== '' && stroke !== 'none';
+            const isStrokeBased = fill === 'none' || (fill === '' && isStrokedDot);
+            if (isStrokeBased || isStrokedDot) return;
+            shape.setAttribute('r', String(targetR));
         },
 
         /**
