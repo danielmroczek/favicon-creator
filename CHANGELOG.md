@@ -2,6 +2,13 @@
 
 ## 2026-10-10
 
+- **Added: load favicons back into the creator.** A new **Load favicon.svg**
+  button (next to Download) and drag-and-drop onto the preview restore a
+  previously generated favicon: every slider, color and the icon itself are
+  read from the `fc:*` `<metadata>` embedded in the file (ADR 0007).
+  Icons of the Lucide/Tabler families are restored exactly; `custom` family
+  files restore only colors/geometry (their source is no longer in the
+  catalog). Files without favicon-creator metadata change nothing.
 - **Removed: custom SVG upload.** The "Custom Icon Upload" section
   (click/drag-and-drop file input) is gone; the app now works exclusively
   with the built-in Lucide + Tabler icon families. `fc:iconFamily` values

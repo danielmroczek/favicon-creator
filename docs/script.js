@@ -489,6 +489,93 @@ function faviconCreator() {
             return { strokeSubpaths, fillSubpaths };
         },
 
+        // ── Import: load a previously created favicon.svg ─────────────────
+
+        /**
+         * Restore the creator state from fc:* metadata inside a generated
+         * favicon (ADR 0007 — the informational <metadata> element written
+         * as the first child of <svg>). Reads family/name/colours plus the
+         * conditional edit-state fields (angle, radius, stroke, position,
+         * size, rotation); anything absent keeps its current/default value.
+         * Returns true when metadata was found and applied.
+         */
+        applyFaviconMetadata(text) {
+            const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+            const meta = doc.querySelector('metadata');
+            if (!meta) return false;
+            const fc = (tag) => {
+                const el = meta.getElementsByTagNameNS(
+                    'https://danielmroczek.github.io/favicon-creator', tag)[0];
+                return el ? el.textContent.trim() : null;
+            };
+            const num = (tag, fallback) => {
+                const v = parseFloat(fc(tag));
+                return Number.isFinite(v) ? v : fallback;
+            };
+
+            const family = fc('iconFamily') || null;
+            const name = fc('iconName') || null;
+            if (family && name) {
+                // Resolvable families restore the exact icon; 'custom' (or an
+                // unknown family) has no catalog entry anymore, so only the
+                // geometry/colors transfer and the icon stays as-is.
+                if (family === 'lucide' || family === 'tabler') {
+                    this.currentIcon = `${family}:${name}`;
+                }
+            }
+
+            const color = (tag, fallback) => {
+                const v = fc(tag);
+                return v && /^#[0-9a-f]{3,8}$/i.test(v) ? v : fallback;
+            };
+            this.color1 = color('gradientStart', this.color1);
+            this.color2 = color('gradientEnd', this.color2);
+            this.iconColor = color('iconColor', this.iconColor);
+            this.gradientAngle = num('gradientAngle', this.gradientAngle);
+            this.borderRadius = num('borderRadius', this.borderRadius);
+            this.strokeWidth = num('strokeWidth', this.strokeWidth);
+            const linecap = fc('strokeLinecap');
+            if (['round', 'square', 'butt'].includes(linecap)) this.strokeLinecap = linecap;
+            this.iconX = num('iconX', 0);
+            this.iconY = num('iconY', 0);
+            this.iconSize = num('iconSize', 24);
+            this.iconRotation = num('iconRotation', this.iconRotation);
+            return true;
+        },
+
+        /**
+         * File-input change handler (+ @drop/@dragover support on the
+         * preview). Accepts one SVG file (typically favicon.svg downloaded
+         * from here), restores every slider/icon state from its fc:*
+         * metadata, and falls back to just drawing the SVG when the file
+         * was not created by this tool (no metadata inside).
+         */
+        loadFaviconFile(file) {
+            if (!file || !/\.svg$/i.test(file.name)) {
+                console.warn('loadFaviconFile: not an SVG file:', file && file.name);
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                const text = String(reader.result || '');
+                if (!this.applyFaviconMetadata(text)) {
+                    console.warn('No favicon-creator metadata found — sliders not restored.');
+                }
+            };
+            reader.readAsText(file);
+        },
+
+        onFaviconFileChange(event) {
+            this.loadFaviconFile(event.target.files && event.target.files[0]);
+            // Reset so picking the same file again re-triggers @change.
+            event.target.value = '';
+        },
+
+        onFaviconDrop(event) {
+            event.preventDefault();
+            this.loadFaviconFile(event.dataTransfer.files && event.dataTransfer.files[0]);
+        },
+
         /**
          * Download the canonical SVG — the exact same string as the preview.
          * No SVGO: external optimization strips the viewBox/dimensions the

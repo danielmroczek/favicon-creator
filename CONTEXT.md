@@ -56,6 +56,14 @@ Color. Rules:
    → `blue-400`), with the up/down direction chosen randomly from the
    directions that keep the result within `100–900`.
 
+### Favicon Re-Load
+The **Load favicon.svg** button and preview drag-and-drop import a
+previously generated favicon: `applyFaviconMetadata` (script.js) parses the
+embedded `fc:*` metadata (ADR 0007) and restores all sliders, colors and the
+icon (`family:name` id). `custom`-family files restore only colors/geometry.
+Metadata-less SVGs (not from this tool) only warn.
+_Avoid_: Import, upload, favicon loading
+
 ### Icon Metadata
 An optional `<metadata>` element in the generated SVG carrying namespaced
 XML children (`fc:` prefix, namespace `https://danielmroczek.github.io/favicon-creator`)

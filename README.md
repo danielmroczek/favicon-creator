@@ -47,7 +47,14 @@ Visit the [live demo](https://danielmroczek.github.io/favicon-creator/) to try i
   click it again to release.
 3. **Adjust Positioning**: The icon starts centered. Use **Icon Size** to scale it
   symmetrically around the canvas center and **X/Y Offset** to shift it (0 = center).
-4. **Download**: Click the download button to get your favicon files
+4. **Download**: Click the download button to get your favicon file
+   (`favicon.svg`)
+5. **Load a favicon back**: Click **Load favicon.svg** next to Download (or
+   drop an SVG file onto the preview) to restore a previously generated
+   favicon: all sliders, colors and the original icon are read from the
+   `fc:*` metadata embedded in the file (see the "Icon Metadata" section in
+   `CONTEXT.md` and ADR 0007 in the portfolio repo). SVGs created elsewhere
+   carry no such metadata and only produce a console warning.
 
 ## Contributing
 
