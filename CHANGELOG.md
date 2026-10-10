@@ -2,6 +2,11 @@
 
 ## 2026-10-10
 
+- **Removed: custom SVG upload.** The "Custom Icon Upload" section
+  (click/drag-and-drop file input) is gone; the app now works exclusively
+  with the built-in Lucide + Tabler icon families. `fc:iconFamily` values
+  `custom` remain valid in the canonical format (readers keep working) but
+  the UI no longer produces them.
 - **Gradient Angle zero reindex** (breaking for metadata readers): the
   user-facing 0° is now the classic diagonal (top-left → bottom-right —
   formerly displayed as 315°). Same visuals, same layout, just a friendlier

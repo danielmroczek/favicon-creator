@@ -41,7 +41,6 @@ Browser-based SVG favicon generator built with **Alpine.js** and vanilla JavaScr
 **4. Stroke Width Scaling**
 - Stroke width is expressed in the icon's LOCAL 24-unit basis and is written to the output as-is; the baked translate+scale matrix scales it on the canvas together with the geometry, so the stroke visually scales with iconSize
 - Do NOT pre-divide stroke width by the scale factor — that would keep canvas thickness constant and make small icons look proportionally thicker
-- Custom SVGs follow the same local-units convention (scaleFactor preserves aspect ratio)
 
 **5. Alpine.js Directives Used**
 - `x-data`: Initialize component state on main container
@@ -52,9 +51,8 @@ Browser-based SVG favicon generator built with **Alpine.js** and vanilla JavaScr
 - `@click`: Handle click events (icon selection, center button, download)
 - `@input`: Removed (not needed with x-model)
 - `@change`: Removed (not needed with x-model)
-- `@dragover.prevent`, `@dragleave`, `@drop.prevent`: File upload drag-and-drop
-- `x-ref`: Reference file input element for programmatic click
-- `x-for`: Loop through displayedIcons to render icon grid
+- `@dragover.prevent`, `@dragleave`, `@drop.prevent`: Removed together with the custom SVG upload feature
+- `x-ref`: Removed (was used for the file input); `x-for`: Loop through displayedIcons to render icon grid
 - `x-show`: Conditionally show "no icons" message or icon count
 - `:class`: Dynamically toggle 'selected' class on icons
 - `$watch`: Monitor previewSvg changes to update favicon
@@ -105,8 +103,7 @@ Browser-based SVG favicon generator built with **Alpine.js** and vanilla JavaScr
 - NEVER emit `transform` attributes — all placement/rotation/scale is baked into path coordinates via `lib/` (canonical format rule 6)
 
 ### State Management
-- Current icon state: `currentIcon` (string) or `customIconSubpaths` (object with `{strokeSubpaths, fillSubpaths}`)
-- `customIconSubpaths = null` when switching back to Lucide icons
+- Current icon state: `currentIcon` (string, family-prefixed id `lucide:*` / `tabler:*`)
 - All UI controls automatically trigger preview updates via Alpine.js reactivity
 
 ## External Dependencies

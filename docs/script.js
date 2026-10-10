@@ -2,7 +2,7 @@
 //
 // Architecture note: ALL canonical-favicon assembly lives in lib/favicon.js
 // (buildFaviconSvg) and lib/path-lib.js (shape→path conversion + transform
-// baking). This component collects Lucide/Tabler/upload shapes, normalizes
+// baking). This component collects Lucide/Tabler shapes, normalizes
 // them into subpath lists, and delegates (Tabler markup is fetched per-icon
 // from the Iconify Tabler collection (loaded once from jsDelivr into the
 // in-memory tablerCollection) — naming/URL helpers live in lib/tabler-lib.js). Preview and download render THE
@@ -59,15 +59,13 @@ function faviconCreator() {
         // X/Y are OFFSETS from the canvas center (−24..24 px): 0 keeps the
         // icon perfectly centered on the 32×32 canvas — no separate "center"
         // action needed. iconSize is the icon's MAXIMUM dimension (longer
-        // side); non-square customs keep their aspect ratio (lib/favicon.js).
+        // side); non-square artwork keeps its aspect ratio (lib/favicon.js).
         iconX: 0,
         iconY: 0,
         iconSize: 21,
         iconRotation: 0,
         iconSearch: '',
         currentIcon: 'lucide:house',
-        customIconSubpaths: null,
-        customIconBasis: null,   // viewBox {vx,vy,vw,vh} of an uploaded SVG (for Icon Size = max dimension)
         allLucideIcons: [],
         popularIcons: ['house', 'heart', 'star', 'user', 'mail', 'phone', 'globe', 'settings'],
         // Tabler (second icon family — see lib/tabler-lib.js): the FULL
@@ -120,8 +118,6 @@ function faviconCreator() {
                 return '';
             }
             const { strokeSubpaths, fillSubpaths } = this.currentIconSubpaths();
-            // Determine icon metadata: Lucide icon vs custom SVG upload.
-            const isCustom = this.customIconSubpaths !== null;
             return window.faviconLib.buildFaviconSvg({
                 color1: this.color1,
                 color2: this.color2,
@@ -133,10 +129,10 @@ function faviconCreator() {
                 iconX: this.iconX,
                 iconY: this.iconY,
                 iconSize: this.iconSize,
-                iconBasis: isCustom ? this.customIconBasis : null,
+                iconBasis: null,
                 iconRotation: this.iconRotation,
-                iconFamily: isCustom ? 'custom' : this.currentIconFamily(),
-                iconName: isCustom ? null : this.currentIconBareName(),
+                iconFamily: this.currentIconFamily(),
+                iconName: this.currentIconBareName(),
                 strokeSubpaths,
                 fillSubpaths,
             });
@@ -296,30 +292,6 @@ function faviconCreator() {
 
         selectIcon(iconName) {
             this.currentIcon = iconName;
-            this.customIconSubpaths = null;
-            this.customIconBasis = null;
-        },
-
-        /**
-         * Parse an uploaded SVG's viewBox into the {vx, vy, vw, vh} basis
-         * object lib/favicon.js uses to keep the icon's LONGER side equal to
-         * the Icon Size slider. Falls back to null (→ the default 24×24
-         * square basis) when the file declares neither viewBox nor width/height.
-         */
-        parseViewBoxBasis(svgElement) {
-            const raw = (svgElement.getAttribute('viewBox') || '').trim();
-            if (raw) {
-                const nums = raw.split(/[\s,]+/).map(parseFloat).filter(Number.isFinite);
-                if (nums.length >= 4 && nums[2] > 0 && nums[3] > 0) {
-                    return { vx: nums[0], vy: nums[1], vw: nums[2], vh: nums[3] };
-                }
-            }
-            const w = parseFloat(svgElement.getAttribute('width'));
-            const h = parseFloat(svgElement.getAttribute('height'));
-            if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) {
-                return { vx: 0, vy: 0, vw: w, vh: h };
-            }
-            return null;
         },
 
         /**
@@ -333,8 +305,6 @@ function faviconCreator() {
          * flicker); `tablerCollection` arriving re-runs previewSvg.
          */
         currentIconSubpaths() {
-            if (this.customIconSubpaths) return this.customIconSubpaths;
-
             if (this.currentIconFamily() === 'tabler') {
                 const lib = this.tablerLib();
                 if (!lib) return { strokeSubpaths: [], fillSubpaths: [] };
@@ -480,8 +450,7 @@ function faviconCreator() {
                 // Stroke vs fill classification: a shape is stroke-based when
                 // it carries no fill of its own OR fill="none". Inherited fill
                 // from an ancestor <g fill="..."> counts as filled — walk the
-                // ancestors so Lucide icons (fill="none" on the wrapper svg)
-                // and normal uploads both classify correctly.
+                // ancestors so both icon families classify correctly.
                 let declaredFill = shape.getAttribute('fill');
                 if (declaredFill === null) {
                     let ancestor = shape.parentElement;
@@ -518,76 +487,6 @@ function faviconCreator() {
             });
 
             return { strokeSubpaths, fillSubpaths };
-        },
-
-        handleFileUpload(event) {
-            const files = event.target.files;
-            if (files.length > 0) this.processFile(files[0]);
-        },
-
-        handleFileDrop(event) {
-            event.currentTarget.classList.remove('dragover');
-            const files = event.dataTransfer.files;
-            if (files.length > 0) this.processFile(files[0]);
-        },
-
-        processFile(file) {
-            if (file.type !== 'image/svg+xml') {
-                alert('Please upload only SVG files.');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const warnings = this.collectFaviconWarnings(e.target.result);
-
-                const parser = new DOMParser();
-                const svgDoc = parser.parseFromString(e.target.result, 'image/svg+xml');
-                const svgElement = svgDoc.documentElement;
-
-                if (svgElement.tagName !== 'svg') {
-                    alert('Invalid SVG file.');
-                    return;
-                }
-
-                const shapeCount = svgElement.querySelectorAll('path, circle, rect, ellipse, line, polyline, polygon').length;
-                if (shapeCount === 0) {
-                    alert('SVG must contain at least one drawable element.');
-                    return;
-                }
-
-                // Store the SUBPATH LISTS (converted + baked) rather than raw
-                // markup — component state mirrors what buildFaviconSvg consumes.
-                // The viewBox is kept too, so the Icon Size slider always
-                // sizes the icon's LONGER side (lib/favicon.js).
-                this.customIconSubpaths = this.subpathsFromSvgMarkup(svgElement.innerHTML);
-                this.customIconBasis = this.parseViewBoxBasis(svgElement);
-
-                if (warnings.length > 0) {
-                    alert('Uploaded SVG has patterns that may not survive extraction:\n\n' +
-                        warnings.map(w => `• ${w}`).join('\n'));
-                } else {
-                    alert('Custom SVG uploaded successfully!');
-                }
-            };
-            reader.readAsText(file);
-        },
-
-        /**
-         * Mirror the portfolio's check-favicon.mjs rules for patterns the
-         * canonical format rejects — surfaced at upload time so problems are
-         * caught before the download.
-         */
-        collectFaviconWarnings(svgText) {
-            const warnings = [];
-            if (/<style[\s>]/i.test(svgText)) warnings.push('<style> blocks — CSS will not be inlined; use presentation attributes.');
-            if (/\sclass="/i.test(svgText)) warnings.push('class="..." attributes reference stripped CSS and will be lost.');
-            if (/var\(/i.test(svgText)) warnings.push('var(...) color references will not resolve — use literal hex colors.');
-            if (/\sstyle="/i.test(svgText)) warnings.push('style="..." attributes are ignored — move declarations into presentation attributes.');
-            if (/currentColor/i.test(svgText)) warnings.push('currentColor will not resolve to white — use #fff.');
-            const nestedSvg = (svgText.match(/<svg[\s>]/gi) || []).length - 1;
-            if (nestedSvg > 0) warnings.push(`${nestedSvg} nested <svg> element(s) — they will be flattened.`);
-            return warnings;
         },
 
         /**

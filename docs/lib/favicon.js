@@ -74,7 +74,7 @@
    *   iconRotation        degrees, about the icon's center
    *   strokeSubpaths      array of `d` strings (stroke-based, merged to ONE path)
    *   fillSubpaths        array of `d` strings (filled, kept as separate shapes)
-   *   iconFamily          icon source family (e.g. 'lucide', 'custom'), null if unknown
+   *   iconFamily          icon source family (e.g. 'lucide'), null if unknown
    *   iconName            icon name within the family (kebab-case), null if unknown
    * @returns {string} full SVG text
    */
@@ -88,7 +88,7 @@
     } = state;
 
     // The icon's declared local viewBox. Lucide/Tabler live in the square
-    // 24×24 basis; custom uploads may declare any viewBox.
+    // 24×24 basis; `iconBasis` allows any viewBox for future icon sources.
     const { vx = 0, vy = 0, vw = 24, vh = 24 } = iconBasis || {};
 
     // Icon Size is the icon's MAXIMUM dimension (user contract): 2:3

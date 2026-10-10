@@ -69,9 +69,9 @@ _Avoid_: Favicon metadata, SVG metadata, icon info
 
 ### Icon Family
 The icon source family of the current selection: `lucide` (bundled UMD,
-in-memory), `tabler` (full Iconify collection JSON fetched once from jsDelivr,
-then in-memory), or `custom`
-(uploaded SVG). Grid identifiers are family-prefixed (`lucide:heart`,
+in-memory) or `tabler` (full Iconify collection JSON fetched once from
+jsDelivr, then in-memory). Grid identifiers are family-prefixed
+(`lucide:heart`,
 `tabler:heart`) so both families can share one search grid without name
 collisions; tiles carry an `L`/`T` badge and, for Tabler, preview the current
 Stroke Width. Recorded in the favicon metadata as `fc:iconFamily`. Only the

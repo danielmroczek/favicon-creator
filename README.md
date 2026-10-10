@@ -12,7 +12,6 @@ A simple, browser-based tool for creating custom favicons for your websites. Des
   sets the target by mouse button (left = Start, right = End, middle = Icon);
   click a target row to pin just that one, and click it again to release.
 - **Icon Library**: Instant search through 1000+ Lucide icons with zero loading time, plus the **Tabler** family (6 000+ icons) in the same search grid — tiles carry an `L`/`T` badge. Tabler icons are stroke-based in a 24×24 viewBox, so the Stroke Width slider drives the real outline thickness and stroke subpaths merge exactly like Lucide. The full Tabler collection JSON is fetched once from jsDelivr (`@iconify-json/tabler`, ~400 KB gzipped) and then served entirely from memory — no per-icon requests, no rate limits.
-- **Custom SVG Support**: Upload your own SVG files to use as favicons
 - **Gradient Angle**: 0° (the default) is the classic diagonal — top-left →
   bottom-right — and the slider rotates the gradient from there. Same visual
   output for the same number across preview and download.
@@ -40,7 +39,7 @@ Visit the [live demo](https://danielmroczek.github.io/favicon-creator/) to try i
 
 ## Usage
 
-1. **Select an Icon**: Choose from the icon grid or upload your own SVG
+1. **Select an Icon**: Choose from the icon grid (Lucide + Tabler)
 2. **Customize Colors**: Click a swatch in the Material palette grid. With no
   target pinned (default) the mouse button picks the target — left = Start,
   right = End, middle = Icon. Swatches already in use show a small `S`/`E`/`I`

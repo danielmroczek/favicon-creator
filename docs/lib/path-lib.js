@@ -2,7 +2,7 @@
 //
 // This module is the seam between the UI (Alpine component) and the canonical
 // favicon format (danielmroczek.github.io/docs/favicon-format.md). It is
-// deliberately DOM-light (only walking uploaded SVG nodes) and dependency-free
+// deliberately DOM-light (only walking parsed SVG nodes) and dependency-free
 // except for window.svgpath, which is loaded from a CDN in index.html.
 //
 // Contract rules implemented here:
