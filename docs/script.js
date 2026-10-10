@@ -56,7 +56,6 @@ function faviconCreator() {
         iconColor: '#ffffff',  // Neutral Extras white — never randomized
         strokeWidth: 2,
         strokeLinecap: 'round',
-        absoluteStrokeWidth: false,  // Lucide-style: stroke scales with icon by default
         // X/Y are OFFSETS from the canvas center (−24..24 px): 0 keeps the
         // icon perfectly centered on the 32×32 canvas — no separate "center"
         // action needed. iconSize is the icon's MAXIMUM dimension (longer
@@ -131,7 +130,6 @@ function faviconCreator() {
                 iconColor: this.iconColor,
                 strokeWidth: this.strokeWidth,
                 strokeLinecap: this.strokeLinecap,
-                absoluteStrokeWidth: this.absoluteStrokeWidth,
                 iconX: this.iconX,
                 iconY: this.iconY,
                 iconSize: this.iconSize,
@@ -282,7 +280,10 @@ function faviconCreator() {
             let inner;
             if (family === 'tabler') {
                 const lib = this.tablerLib();
-                inner = (lib && lib.resolveMarkup(this.tablerCollection, bare))
+                // stripStrokeWidth removes the INLINE stroke-width="2" from
+                // Tabler bodies — without it the wrapper's inherited value
+                // (this.strokeWidth) is overridden and tiles are pinned to 2.
+                inner = (lib && lib.stripStrokeWidth(lib.resolveMarkup(this.tablerCollection, bare)))
                     || '<circle cx="12" cy="12" r="9"/>';
             } else {
                 inner = this.getLucideIconSvg(bare);
@@ -345,7 +346,9 @@ function faviconCreator() {
                     // the last good state instead of flashing an empty icon.
                     return this.lastTablerSubpaths || { strokeSubpaths: [], fillSubpaths: [] };
                 }
-                const subpaths = this.subpathsFromSvgMarkup(markup);
+                const subpaths = this.subpathsFromSvgMarkup(
+                    lib.stripStrokeWidth(markup),
+                );
                 this.lastTablerSubpaths = subpaths;
                 return subpaths;
             }

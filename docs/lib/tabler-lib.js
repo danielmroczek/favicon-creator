@@ -8,11 +8,13 @@
 // error responses, retry storms, tiles stuck on placeholders.
 //
 // Tabler SVG bodies are stroke-based with stroke-width="2" in a 24×24
-// viewBox — identical basis to Lucide, so the existing pipeline treats
-// them exactly like Lucide markup: the Stroke Width slider drives the REAL
-// stroke, and stroke subpaths merge into one path. `-filled` names are
-// excluded from the catalog (fill-baked contours ignore the Stroke Width
-// slider).
+// viewBox — identical basis to Lucide. Bodies MUST be passed through
+// stripStrokeWidth() before rendering: every shape carries an INLINE
+// stroke-width="2" attribute that would override the wrapper's inherited
+// attrs (see lib/favicon.js stroke-ink contract), pinning both tiles and
+// previews to thickness 2. Stripping it lets the Stroke Width slider drive
+// the stroke for BOTH families. `-filled` names are excluded from the
+// catalog (fill-baked contours ignore the Stroke Width slider).
 //
 // Exposed as window.faviconTablerLib so tests exercise the same code the
 // Alpine component uses.
@@ -76,6 +78,15 @@
     return parent ? (collectionJson.icons || {})[parent]?.body : undefined;
   }
 
+  /**
+   * Strip the INLINE stroke-width attribute from Tabler markup so wrapper
+   * inheritance drives the stroke (Lucide inner markup carries no such
+   * attribute — see lib/favicon.js stroke-ink contract).
+   */
+  function stripStrokeWidth(markup) {
+    return (markup || '').replace(/ stroke-width="[^"]*"/g, '');
+  }
+
   /** Case-insensitive substring search over bare names. Empty query → []. */
   function searchNames(bareNamesList, query) {
     const term = (query || '').toLowerCase().trim();
@@ -88,6 +99,7 @@
     collectionUrl,
     catalogNames,
     resolveMarkup,
+    stripStrokeWidth,
     searchNames,
   };
 })();

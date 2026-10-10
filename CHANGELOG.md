@@ -2,6 +2,18 @@
 
 ## 2026-10-10
 
+- Fixed: Tabler tiles in the icon search grid ignored the Stroke Width
+  slider. Tabler bodies carry an INLINE `stroke-width="2"` attribute which
+  overrides the grid wrapper's inherited value; the new
+  `faviconTablerLib.stripStrokeWidth()` helper removes it before rendering,
+  so tiles AND previews of both families now track the slider.
+
+- **Stroke Width is always ABSOLUTE** (breaking): the "Absolute Stroke
+  Width" checkbox is gone — the stroke-width attribute is now written to
+  the output as-is, a constant canvas thickness regardless of Icon Size
+  (the old default behaviour scaled the stroke with the icon). The Stroke
+  Width slider now steps in **0.25** increments (min 0.5, max 4). Metadata
+  field `fc:absoluteStrokeWidth` removed (ADR 0007).
 - **Center-based icon placement** (breaking): the icon is always centered on
   the 32×32 canvas; the X/Y sliders are now **offsets from the center**
   (−24..24 px, default 0 = perfectly centered — the slider's midpoint). The

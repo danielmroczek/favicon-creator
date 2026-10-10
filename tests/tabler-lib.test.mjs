@@ -77,4 +77,32 @@ assert.ok(lib, 'library did not expose window.faviconTablerLib');
   assert.equal(lib.resolveMarkup(null, 'star'), undefined, 'collection not loaded → undefined');
 }
 
+// ── stripStrokeWidth: inline attribute must not override inheritance ────────
+{
+  const body = '<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 12.6L12 20"/>';
+  assert.equal(
+    lib.stripStrokeWidth(body),
+    '<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M19.5 12.6L12 20"/>',
+    'removes the inline stroke-width="2" (real Iconify body shape)',
+  );
+  assert.equal(lib.stripStrokeWidth('<g stroke-width="1.5"><path stroke-width="2"/></g>'),
+    '<g><path/></g>', 'removes every occurrence, not just the first');
+  assert.equal(lib.stripStrokeWidth('<path fill="none"/>'), '<path fill="none"/>',
+    'markup without stroke-width is unchanged');
+  assert.equal(lib.stripStrokeWidth(undefined), '', 'undefined → empty string (caller falls back)');
+  // End-to-end through resolveMarkup: an alias with its own body override
+  // (which may carry an inline stroke-width) gets stripped just like a
+  // direct icon body.
+  const json = {
+    icons: { star: { body } },
+    aliases: { 'star-badge': { parent: 'star' }, custom: { parent: 'star', body: '<path stroke-width="2" d="z"/>' } },
+  };
+  for (const name of ['star', 'star-badge', 'custom']) {
+    assert.ok(
+      !lib.stripStrokeWidth(lib.resolveMarkup(json, name)).includes('stroke-width'),
+      `${name}: resolved+stripped markup carries no inline stroke-width`,
+    );
+  }
+}
+
 console.log('tests/tabler-lib.test.mjs — all assertions passed');

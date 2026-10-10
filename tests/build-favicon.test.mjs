@@ -51,10 +51,10 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   assert.ok(svg.includes('stroke-linecap="round"'), 'stroke-linecap carried through');
   // Exactly one <path> for a stroke-only icon (merged subpaths).
   assert.equal(svg.match(/<path\b/g).length, 1, 'exactly one path element for stroke icon');
-  // iconSize 22 → scale 22/24 → baked stroke = 2·22/24 ≈ 1.8333 (stroke
-  // scales WITH the icon; attribute lives in final canvas units).
+  // Stroke Width is ABSOLUTE: stroke-width attribute = strokeWidth as-is
+  // (2), lives in final canvas units and does NOT scale with iconSize.
   // Icon center (12,12) maps to (16+5, 16+5): corners 0→10, 24→32.
-  assert.equal((svg.match(/<path\b[^>]*>/g) || [''])[0], '<path id="icon" fill="none" stroke="#f5f5f5" stroke-width="1.8333" stroke-linecap="round" stroke-linejoin="round" d="M10 10L32 32M10 32L32 10"/>', 'merged subpaths concatenate in baked coordinates (22px icon at offsets 5,5)');
+  assert.equal((svg.match(/<path\b[^>]*>/g) || [''])[0], '<path id="icon" fill="none" stroke="#f5f5f5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M10 10L32 32M10 32L32 10"/>', 'merged subpaths concatenate in baked coordinates (absolute stroke 2, 22px icon at offsets 5,5)');
   // Ends with the closed root tag.
   assert.ok(svg.endsWith('</svg>'), 'root element closed');
 }
@@ -131,7 +131,7 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   assert.ok(!/transform=/.test(svg), 'canonical output never contains transform attributes');
 }
 
-// ── Stroke width scales with icon size (24-unit Lucide basis) ───────────────
+// ── Stroke width is ABSOLUTE: constant canvas units regardless of iconSize ──
 {
   const svg = buildFaviconSvg({
     color1: '#000',
@@ -142,13 +142,13 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     strokeLinecap: 'round',
     iconX: 5,
     iconY: 5,
-    iconSize: 24, // scale factor 1 → stroke stays 2
+    iconSize: 24,
     iconRotation: 0,
     // Artwork spans the full 24-unit basis → measured scale = 24/24 = 1.
     strokeSubpaths: ['M0 0L24 24'],
     fillSubpaths: [],
   });
-  assert.ok(svg.includes('stroke-width="2"'), '24-unit icon keeps 1:1 stroke width');
+  assert.ok(svg.includes('stroke-width="2"'), '24-unit icon keeps stroke-width 2');
 }
 
 {
@@ -161,19 +161,19 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     strokeLinecap: 'round',
     iconX: 5,
     iconY: 5,
-    iconSize: 12, // scale factor 0.5 → baked stroke = 2·0.5 = 1
+    iconSize: 12, // scale 0.5 — stroke stays 2 canvas units (absolute)
     iconRotation: 0,
     // Artwork spans the full 24-unit basis → measured scale = 12/24 = 0.5.
     strokeSubpaths: ['M0 0L24 24'],
     fillSubpaths: [],
   });
   // No transform attribute exists, so stroke-width lives in FINAL canvas
-  // units and must be strokeWidth·scale = 2·0.5 = 1 — the stroke shrinks
-  // together with the icon instead of looking proportionally thicker.
-  assert.ok(svg.includes('stroke-width="1"'), 'downscaled icon gets proportionally thinner stroke');
+  // units; absolute semantics mean it is written as-is (2) regardless of
+  // the 0.5 scale — a constant canvas thickness at any icon size.
+  assert.ok(svg.includes('stroke-width="2"'), 'downscaled icon keeps constant (absolute) stroke width');
 }
 
-// ── Absolute Stroke Width: constant canvas thickness regardless of iconSize ─
+// ── Absolute stroke at extreme downscale + fractional step values ─────────
 {
   const svg = buildFaviconSvg({
     color1: '#000',
@@ -184,32 +184,32 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     strokeLinecap: 'round',
     iconX: 5,
     iconY: 5,
-    iconSize: 12, // scale 0.5, but absolute mode → stroke stays 2 canvas units
+    iconSize: 4, // extreme downscale — stroke still emits strokeWidth
     iconRotation: 0,
-    absoluteStrokeWidth: true,
     strokeSubpaths: ['M1 1L2 2'],
     fillSubpaths: [],
   });
-  assert.ok(svg.includes('stroke-width="2"'), 'absolute mode keeps stroke at strokeWidth canvas units');
+  assert.ok(svg.includes('stroke-width="2"'), 'absolute stroke ignores iconSize entirely');
 }
 
 {
+  // The slider step is 0.25 (min 0.5): fractional values carry through.
   const svg = buildFaviconSvg({
     color1: '#000',
     color2: '#000',
     gradientAngle: 0,
     borderRadius: 4,
-    strokeWidth: 2,
+    strokeWidth: 0.75,
     strokeLinecap: 'round',
     iconX: 5,
     iconY: 5,
-    iconSize: 4, // extreme downscale — absolute mode still emits strokeWidth
+    iconSize: 12,
     iconRotation: 0,
-    absoluteStrokeWidth: true,
     strokeSubpaths: ['M1 1L2 2'],
     fillSubpaths: [],
   });
-  assert.ok(svg.includes('stroke-width="2"'), 'absolute mode ignores iconSize entirely');
+  assert.ok(svg.includes('stroke-width="0.75"'), 'fractional stroke width (0.75) written as-is');
+  assert.ok(svg.includes('<fc:strokeWidth>0.75</fc:strokeWidth>'), 'non-default fractional strokeWidth in metadata');
 }
 
 // ── Metadata: always-emitted fields, conditional fields omitted at defaults ─
@@ -226,7 +226,6 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     iconY: 0,
     iconSize: 24,
     iconRotation: 0,
-    absoluteStrokeWidth: false,
     iconFamily: 'lucide',
     iconName: 'arrow-right',
     iconColor: '#ffffff',
@@ -250,7 +249,6 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   assert.ok(!svg.includes('fc:borderRadius'), 'default borderRadius not in metadata');
   assert.ok(!svg.includes('fc:strokeWidth'), 'default strokeWidth not in metadata');
   assert.ok(!svg.includes('fc:strokeLinecap'), 'default strokeLinecap not in metadata');
-  assert.ok(!svg.includes('fc:absoluteStrokeWidth'), 'default absoluteStrokeWidth not in metadata');
   assert.ok(!svg.includes('fc:iconX'), 'default iconX not in metadata');
   assert.ok(!svg.includes('fc:iconY'), 'default iconY not in metadata');
   assert.ok(!svg.includes('fc:iconSize'), 'default iconSize not in metadata');
@@ -275,7 +273,6 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
     iconY: 6,
     iconSize: 20,
     iconRotation: 45,
-    absoluteStrokeWidth: true,
     iconFamily: 'custom',
     iconName: null,
     iconColor: '#f5f5f5',
@@ -292,7 +289,6 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
   assert.ok(svg.includes('<fc:borderRadius>8</fc:borderRadius>'), 'non-default borderRadius');
   assert.ok(svg.includes('<fc:strokeWidth>1.5</fc:strokeWidth>'), 'non-default strokeWidth');
   assert.ok(svg.includes('<fc:strokeLinecap>square</fc:strokeLinecap>'), 'non-default strokeLinecap');
-  assert.ok(svg.includes('<fc:absoluteStrokeWidth>true</fc:absoluteStrokeWidth>'), 'absoluteStrokeWidth=true');
   assert.ok(svg.includes('<fc:iconX>2</fc:iconX>'), 'non-default iconX');
   assert.ok(svg.includes('<fc:iconY>6</fc:iconY>'), 'non-default iconY');
   assert.ok(svg.includes('<fc:iconSize>20</fc:iconSize>'), 'non-default iconSize');

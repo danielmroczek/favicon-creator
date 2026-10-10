@@ -61,8 +61,8 @@ An optional `<metadata>` element in the generated SVG carrying namespaced
 XML children (`fc:` prefix, namespace `https://danielmroczek.github.io/favicon-creator`)
 with icon genesis and edit-state information. Five fields are always emitted
 (`iconFamily`, `iconName`, `gradientStart`, `gradientEnd`, `iconColor`);
-nine conditional fields (`gradientAngle`, `borderRadius`, `strokeWidth`,
-`strokeLinecap`, `absoluteStrokeWidth`, `iconX`, `iconY`, `iconSize`,
+eight conditional fields (`gradientAngle`, `borderRadius`, `strokeWidth`,
+`strokeLinecap`, `iconX`, `iconY`, `iconSize`,
 `iconRotation`) are emitted only when non-default. Informational only — not
 a round-trip contract (ADR `0007` in danielmroczek.github.io).
 _Avoid_: Favicon metadata, SVG metadata, icon info

@@ -291,14 +291,6 @@ body {
     align-items: center;
 }
 
-/* Checkbox toggles (e.g. Absolute Stroke Width) are not sliders — let the
-   label take its natural width instead of the fixed slider label column,
-   which would clip longer labels. */
-.range-group:has(> input[type="checkbox"]) {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
 
 /* Vertical breathing room between consecutive slider rows. Scoped to
     direct children of .control-group. */

@@ -155,13 +155,9 @@
         </div>
         <div class="range-group">
           <label>Stroke Width</label>
-          <input type="range" x-model.number="strokeWidth" min="0.5" max="4" step="0.5">
+          <input type="range" x-model.number="strokeWidth" min="0.5" max="4" step="0.25"
+            title="Constant canvas stroke thickness regardless of icon size.">
           <span class="range-value" x-text="strokeWidth"></span>
-        </div>
-        <div class="range-group">
-          <label for="absolute-stroke-width">Absolute Stroke Width</label>
-          <input type="checkbox" id="absolute-stroke-width" x-model="absoluteStrokeWidth"
-            title="Keep stroke thickness constant on the canvas regardless of icon size (like Lucide's toggle). When off, the stroke scales with the icon.">
         </div>
         <div style="margin-top: 1rem;">
           <label>Stroke Line Cap</label>

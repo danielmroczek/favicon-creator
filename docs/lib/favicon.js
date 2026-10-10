@@ -53,7 +53,9 @@
    *   color1/color2       gradient stop colors
    *   gradientAngle       degrees 0–360
    *   borderRadius        background rect rx
-   *   strokeWidth         user's stroke-width (in 24-unit lucide basis)
+   *   strokeWidth         the user's stroke-width — written to the output
+   *                       AS-IS in CANVAS units (absolute thickness); it
+   *                       does NOT scale with iconSize
    *   strokeLinecap       'round' | 'square' | 'butt'
   *   iconX/iconY         pixel offsets from the canvas CENTER (−24..24);
   *                       0 = the icon stays perfectly centered
@@ -62,11 +64,6 @@
   *   iconBasis           the icon's local viewBox {vx, vy, vw, vh};
   *                       defaults to {0, 0, 24, 24} (Lucide/Tabler basis)
    *   iconRotation        degrees, about the icon's center
-   *   absoluteStrokeWidth when true, the stroke keeps a CONSTANT canvas
-   *                       thickness (strokeWidth units) regardless of
-   *                       iconSize — mirrors Lucide's "Absolute Stroke
-   *                       Width" toggle. Default false: stroke scales
-   *                       with the icon.
    *   strokeSubpaths      array of `d` strings (stroke-based, merged to ONE path)
    *   fillSubpaths        array of `d` strings (filled, kept as separate shapes)
    *   iconFamily          icon source family (e.g. 'lucide', 'custom'), null if unknown
@@ -78,7 +75,6 @@
       color1, color2, gradientAngle, borderRadius,
       strokeWidth, strokeLinecap,
       iconX, iconY, iconSize, iconRotation, iconBasis,
-      absoluteStrokeWidth = false,
       strokeSubpaths = [], fillSubpaths = [],
       iconFamily, iconName,
     } = state;
@@ -110,15 +106,12 @@
     // Scale factor from the measured artwork box to the on-canvas icon size.
     const scale = iconSize / Math.max(fitW, fitH);
     // The matrix is baked into the path data (no transform attribute), so
-    // the stroke-width attribute lives in FINAL canvas units.
-    //
-    // Default (relative, like Lucide): stroke scales WITH the icon —
-    //   on-canvas thickness = strokeWidth · scale = strokeWidth · iconSize/24.
-    //
-    // absoluteStrokeWidth (Lucide's "Absolute Stroke Width"): keep a
-    // constant canvas thickness of exactly `strokeWidth` units no matter
-    // how big the icon is rendered.
-    const bakedStrokeWidth = absoluteStrokeWidth ? strokeWidth : strokeWidth * scale;
+    // the stroke-width attribute lives in FINAL canvas units. Stroke Width
+    // is ABSOLUTE: it is written to the output as-is — a constant canvas
+    // thickness no matter how big the icon is rendered (the separate
+    // "Absolute Stroke Width" toggle was removed; this is now the only
+    // behavior).
+    const bakedStrokeWidth = strokeWidth;
 
     // Combined transform: the scaled icon is CENTERED on the 32×32 canvas
     // (its local center — including a non-zero viewBox origin — maps to
@@ -169,7 +162,6 @@
     if (borderRadius !== 4)    metaPush('borderRadius', borderRadius);
     if (strokeWidth !== 2)     metaPush('strokeWidth', strokeWidth);
     if (strokeLinecap !== 'round') metaPush('strokeLinecap', strokeLinecap);
-    if (absoluteStrokeWidth)   metaPush('absoluteStrokeWidth', 'true');
     if (iconX !== 0)           metaPush('iconX', iconX);
     if (iconY !== 0)           metaPush('iconY', iconY);
     if (iconSize !== 24)       metaPush('iconSize', iconSize);
