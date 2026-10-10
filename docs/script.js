@@ -2,8 +2,10 @@
 //
 // Architecture note: ALL canonical-favicon assembly lives in lib/favicon.js
 // (buildFaviconSvg) and lib/path-lib.js (shape→path conversion + transform
-// baking). This component only collects Lucide/upload shapes, normalizes
-// them into subpath lists, and delegates. Preview and download render THE
+// baking). This component collects Lucide/Tabler/upload shapes, normalizes
+// them into subpath lists, and delegates (Tabler markup is fetched per-icon
+// from the Iconify Tabler collection (loaded once from jsDelivr into the
+// in-memory tablerCollection) — naming/URL helpers live in lib/tabler-lib.js). Preview and download render THE
 // SAME STRING, so they can never drift apart.
 function faviconCreator() {
     // Material shade axis for the color grid — 100–900 only (no 50,
@@ -34,6 +36,18 @@ function faviconCreator() {
         randomPair: (p, opts) => sharedLib.randomPair(p, opts),
     } : null;
 
+    /**
+     * Split a family-prefixed icon id ("lucide:heart", "tabler:star") into
+     * { family, bare }. A legacy un-prefixed id is treated as Lucide. Single
+     * home of the id convention — used by the grid, selection and metadata.
+     */
+    const parseIconId = (iconId) => {
+        const sep = iconId.indexOf(':');
+        return sep === -1
+            ? { family: 'lucide', bare: iconId }
+            : { family: iconId.slice(0, sep), bare: iconId.slice(sep + 1) };
+    };
+
     return {
         color1: '#2196f3',   // replaced by randomPalette() in init()
         color2: '#1e88e5',
@@ -48,10 +62,22 @@ function faviconCreator() {
         iconSize: 24,
         iconRotation: 0,
         iconSearch: '',
-        currentIcon: 'house',
+        currentIcon: 'lucide:house',
         customIconSubpaths: null,
         allLucideIcons: [],
         popularIcons: ['house', 'heart', 'star', 'user', 'mail', 'phone', 'globe', 'settings'],
+        // Tabler (second icon family — see lib/tabler-lib.js): the FULL
+        // collection JSON is fetched ONCE from jsDelivr into memory (same
+        // architecture as Lucide's bundled UMD), then everything renders
+        // synchronously — no per-icon requests, no rate limits. Combined
+        // grid shows BOTH families at once (lucide:*/tabler:* ids), no
+        // family switcher. Tabler SVGs are stroke-based in a 24×24
+        // viewBox — the Stroke Width slider drives the real stroke, same
+        // as Lucide. In-memory only (no localStorage).
+        tablerCollection: null,     // loaded @iconify-json/tabler JSON (icons + aliases with bodies)
+        tablerSearchTimer: null,    // 300ms debounce for catalog search
+        tablerSearchResults: [],    // latest debounced tabler matches
+        lastTablerSubpaths: null,   // keep-last-rendered while the collection loads (no preview flicker)
         activeTarget: null,   // null = mouse mode (default): the mouse button picks the target (left=Start, right=End, middle=Icon); click a target row to pin writes to it alone
         swatchGrid: [],       // built once in init() — see allLucideIcons pattern
 
@@ -66,8 +92,18 @@ function faviconCreator() {
 
         get displayedIcons() {
             const searchTerm = this.iconSearch.toLowerCase().trim();
-            if (searchTerm === '') return this.popularIcons;
-            return this.getAllLucideIcons().filter(icon => icon.toLowerCase().includes(searchTerm));
+            // Combined grid: Lucide (sync, in-memory) + Tabler (bare names
+            // from the Iconify catalog, loaded async). Empty query → popular
+            // subset of BOTH families side by side — directly comparable.
+            const lucideIds = (searchTerm === ''
+                ? this.popularIcons
+                : this.getAllLucideIcons().filter(icon => icon.toLowerCase().includes(searchTerm))
+            ).map(name => `lucide:${name}`);
+            const tablerIds = (searchTerm === ''
+                ? ((window.faviconTablerLib && window.faviconTablerLib.popularTablerIcons) || [])
+                : this.tablerSearchResults
+            ).filter(name => this.tablerCollection).map(name => `tabler:${name}`);
+            return [...lucideIds, ...tablerIds];
         },
 
         /**
@@ -95,8 +131,8 @@ function faviconCreator() {
                 iconY: this.iconY,
                 iconSize: this.iconSize,
                 iconRotation: this.iconRotation,
-                iconFamily: isCustom ? 'custom' : 'lucide',
-                iconName: isCustom ? null : this.currentIcon,
+                iconFamily: isCustom ? 'custom' : this.currentIconFamily(),
+                iconName: isCustom ? null : this.currentIconBareName(),
                 strokeSubpaths,
                 fillSubpaths,
             });
@@ -104,6 +140,7 @@ function faviconCreator() {
 
         init() {
             this.getAllLucideIcons();
+            this.loadTablerCollection();
             // Randomize hue-row order on every load (shades stay
             // sorted 100–900 within each row; white/black extras are
             // rendered separately and always last — see index.html).
@@ -221,9 +258,33 @@ function faviconCreator() {
             }
         },
 
+        tablerLib() {
+            if (!window.faviconTablerLib) {
+                console.warn('faviconTablerLib not loaded — check lib/*.js script tags');
+            }
+            return window.faviconTablerLib;
+        },
+
         getIconHtml(iconName) {
-            const svgContent = this.getLucideIconSvg(iconName);
-            return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svgContent}</svg>`;
+            // iconName may be a family-prefixed id ("lucide:heart" /
+            // "tabler:star"). Both render SYNCHRONOUSLY from in-memory
+            // data (Lucide UMD; the Tabler collection JSON loaded once at
+            // startup). Tiles of BOTH families mirror the current Stroke
+            // Width so the grid previews the real outline thickness.
+            const { family, bare } = parseIconId(iconName);
+            const badge = family === 'tabler' ? 'T' : 'L';
+            let inner;
+            if (family === 'tabler') {
+                const lib = this.tablerLib();
+                inner = (lib && lib.resolveMarkup(this.tablerCollection, bare))
+                    || '<circle cx="12" cy="12" r="9"/>';
+            } else {
+                inner = this.getLucideIconSvg(bare);
+            }
+            // Shared wrapper: identical geometry and stroke handling for both
+            // families — only the badge letter and inner markup differ.
+            return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${this.strokeWidth}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`
+                + `<span class="icon-family-badge" aria-hidden="true">${badge}</span>`;
         },
 
         selectIcon(iconName) {
@@ -231,22 +292,91 @@ function faviconCreator() {
             this.customIconSubpaths = null;
         },
 
+        /**
+         * Collect the subpath lists for the currently selected icon source.
+         * Returns { strokeSubpaths, fillSubpaths } — plain `d` strings in the
+         * icon's local 24-unit coordinate space, transforms already baked.
+         * Tabler markup is stroke-based in a 24×24 viewBox, so it flows
+         * through the SAME path as Lucide: Stroke Width drives the real
+         * stroke, and stroke subpaths merge. While the collection JSON is
+         * still downloading, the PREVIOUS rendered state is kept (no
+         * flicker); `tablerCollection` arriving re-runs previewSvg.
+         */
+        currentIconSubpaths() {
+            if (this.customIconSubpaths) return this.customIconSubpaths;
+
+            if (this.currentIconFamily() === 'tabler') {
+                const lib = this.tablerLib();
+                if (!lib) return { strokeSubpaths: [], fillSubpaths: [] };
+                const name = this.currentIconBareName();
+                const markup = lib.resolveMarkup(this.tablerCollection, name);
+                if (!markup) {
+                    // Collection still loading (or unknown name — e.g. a
+                    // `-filled` variant that never enters the catalog): keep
+                    // the last good state instead of flashing an empty icon.
+                    return this.lastTablerSubpaths || { strokeSubpaths: [], fillSubpaths: [] };
+                }
+                const subpaths = this.subpathsFromSvgMarkup(markup);
+                this.lastTablerSubpaths = subpaths;
+                return subpaths;
+            }
+
+            // Lucide icon markup → converted shapes → baked subpath lists.
+            const inner = this.getLucideIconSvg(this.currentIconBareName());
+            return this.subpathsFromSvgMarkup(inner);
+        },
+
+        /** Family part of the current icon id: 'lucide' | 'tabler'. */
+        currentIconFamily() {
+            return parseIconId(this.currentIcon).family;
+        },
+
+        /** Bare name (no family prefix) of the current icon id. */
+        currentIconBareName() {
+            return parseIconId(this.currentIcon).bare;
+        },
+
         centerIcon() {
             this.iconX = (32 - this.iconSize) / 2;
             this.iconY = (32 - this.iconSize) / 2;
         },
 
-        /**
-         * Collect the subpath lists for the currently selected icon source.
-         * Returns { strokeSubpaths, fillSubpaths } — plain `d` strings in the
-         * icon's local 24-unit coordinate space, transforms already baked.
-         */
-        currentIconSubpaths() {
-            if (this.customIconSubpaths) return this.customIconSubpaths;
+        // ── Tabler family (jsDelivr collection, loaded once) ─────────────
 
-            // Lucide icon markup → converted shapes → baked subpath lists.
-            const inner = this.getLucideIconSvg(this.currentIcon);
-            return this.subpathsFromSvgMarkup(inner);
+        /**
+         * Load the FULL Tabler collection JSON once from jsDelivr (same
+         * resource pattern as Lucide's bundled UMD). After this resolves,
+         * every tile and preview renders synchronously from memory — no
+         * per-icon requests, no rate limits.
+         */
+        async loadTablerCollection() {
+            const lib = this.tablerLib();
+            if (!lib) return;
+            try {
+                const res = await fetch(lib.collectionUrl());
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const collection = await res.json();
+                if (!collection || !collection.icons) {
+                    throw new Error('payload is not an Iconify collection JSON');
+                }
+                this.tablerCollection = collection;
+                this.scheduleTablerSearch();
+            } catch (error) {
+                console.warn('Tabler collection unavailable — showing Lucide results only:', error);
+            }
+        },
+
+        /** Debounced (300ms) refresh of the tabler search results. */
+        scheduleTablerSearch() {
+            const lib = window.faviconTablerLib;
+            if (!lib) return;
+            clearTimeout(this.tablerSearchTimer);
+            this.tablerSearchTimer = setTimeout(() => {
+                const term = this.iconSearch.toLowerCase().trim();
+                this.tablerSearchResults = term === ''
+                    ? [...lib.popularTablerIcons]
+                    : lib.searchNames(lib.catalogNames(this.tablerCollection), term);
+            }, 300);
         },
 
         /**
@@ -328,6 +458,8 @@ function faviconCreator() {
                 const isStrokeBased = fillValue === '' || fillValue === 'none';
 
                 // Bake accumulated ancestor + local transforms into the coords.
+                // Both icon families use the canonical 24-unit local basis, so
+                // no viewBox normalization is needed.
                 const matrix = window.faviconPathLib.accumulatedMatrix(shape);
                 const { d: baked, baked: ok } = window.faviconPathLib.bakeMatrix(localD, matrix);
                 if (!ok) {

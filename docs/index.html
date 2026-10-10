@@ -49,11 +49,12 @@
       <section class="control-group" aria-labelledby="icon-heading">
         <h3 id="icon-heading">Icon</h3>
         <div class="icon-search">
-          <input type="text" x-model="iconSearch" placeholder="Search all Lucide icons..." style="margin-bottom: 1rem;">
+          <input type="text" x-model="iconSearch" @input="scheduleTablerSearch()"
+            placeholder="Search Lucide and Tabler icons..." style="margin-bottom: 1rem;">
           <div class="icon-grid" id="icon-grid">
-            <template x-for="iconName in displayedIcons" :key="iconName">
-              <div class="icon-item" :class="{ 'selected': currentIcon === iconName && !customIconSubpaths }"
-                @click="selectIcon(iconName)" x-html="getIconHtml(iconName)">
+            <template x-for="iconId in displayedIcons" :key="iconId">
+              <div class="icon-item" :class="{ 'selected': currentIcon === iconId && !customIconSubpaths }"
+                @click="selectIcon(iconId)" x-html="getIconHtml(iconId)">
               </div>
             </template>
             <div x-show="displayedIcons.length === 0"
@@ -190,6 +191,7 @@
   <script src="lib/palette-lib.js"></script>
   <script src="lib/path-lib.js"></script>
   <script src="lib/favicon.js"></script>
+  <script src="lib/tabler-lib.js"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script src="script.js"></script>

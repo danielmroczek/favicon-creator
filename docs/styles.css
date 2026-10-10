@@ -263,6 +263,25 @@ body {
     background: var(--pico-primary-200);
 }
 
+/* Family badge (L = Lucide, T = Tabler) in the top-right corner of an
+   icon tile — with two families sharing one grid the badge is the only
+   visual cue distinguishing otherwise identical-looking icons. */
+.icon-item {
+    position: relative;
+}
+
+.icon-family-badge {
+    position: absolute;
+    top: 1px;
+    right: 2px;
+    font-size: 0.5rem;
+    line-height: 1;
+    font-weight: 700;
+    color: #888;
+    pointer-events: none;
+    user-select: none;
+}
+
 .range-group {
     display: grid;
     /* Single row: label | slider | value. Fixed side columns so every

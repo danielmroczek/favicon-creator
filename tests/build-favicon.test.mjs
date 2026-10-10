@@ -326,3 +326,27 @@ assert.ok(typeof buildFaviconSvg === 'function', 'favicon lib did not expose bui
 }
 
 console.log('tests/build-favicon.test.mjs — all assertions passed');
+
+// ── Metadata: tabler family carried through (second icon family) ────────────
+{
+  const svg = buildFaviconSvg({
+    color1: '#3b82f6',
+    color2: '#1d4ed8',
+    gradientAngle: 315,
+    borderRadius: 4,
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    iconX: 4,
+    iconY: 4,
+    iconSize: 24,
+    iconRotation: 0,
+    iconFamily: 'tabler',
+    iconName: 'heart',
+    iconColor: '#ffffff',
+    strokeSubpaths: ['M1 1L2 2'],
+    fillSubpaths: [],
+  });
+  assert.ok(svg.includes('<fc:iconFamily>tabler</fc:iconFamily>'), 'tabler family in metadata');
+  assert.ok(svg.includes('<fc:iconName>heart</fc:iconName>'), 'tabler icon name in metadata');
+  assert.ok(!/transform=/.test(svg), 'canonical output stays transform-free');
+}

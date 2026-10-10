@@ -29,16 +29,14 @@ Browser-based SVG favicon generator built with **Alpine.js** and vanilla JavaScr
 - Canonical assembly lives in `lib/` — `script.js` only collects and classifies shapes
 - Transform baking uses the vendored `svgpath.min.js` IIFE (upstream has no UMD build, so it cannot be CDN-loaded)
 
-**3. Icon System (Lucide Integration)**
-- Uses Lucide UMD library loaded from `https://unpkg.com/lucide@latest/dist/umd/lucide.js`
-- All icons available in-memory via `lucide.icons` object (instant, no HTTP requests)
+- All Lucide icons available in-memory via `lucide.icons` object (instant, no HTTP requests)
 - Icon names converted from kebab-case to PascalCase for Lucide API: `arrow-right` → `ArrowRight`
 - SVG content rendered directly from icon data structure `[tag, attrs, children]`
 - `getAllLucideIcons()` extracts all icon names from `lucide.icons` and converts to kebab-case
-- Popular icons (`popularIcons` array) shown by default; full search via reactive `iconSearch` property
+- **Tabler family**: the FULL Iconify collection JSON (`@iconify-json/tabler`) is fetched ONCE at startup from jsDelivr (`lib/tabler-lib.js` helpers; state `tablerCollection`) — after that every tile and preview resolves synchronously from memory. NO per-icon requests (those had rate limits/CORS issues); `-filled` variants are excluded from the catalog (fill-baked contours ignore the Stroke Width slider)
+- **Family-prefixed ids**: grid entries are `lucide:heart` / `tabler:heart` (parsed by `parseIconId`); tiles carry an `L`/`T` badge and BOTH families preview the current Stroke Width on the tile
+- Popular icons shown by default; full search via reactive `iconSearch` — Lucide results update instantly, Tabler search is debounced 300 ms (`scheduleTablerSearch`) over the ~6 000-name catalog
 - **Icon grid**: Uses `x-for` template to render icons from `displayedIcons` computed property
-- **Instant loading**: No HTTP requests, all icons rendered from in-memory library
-- **No debouncing needed**: Alpine.js reactivity is fast enough for instant search
 
 **4. Stroke Width Scaling**
 - Stroke width is expressed in the icon's LOCAL 24-unit basis and is written to the output as-is; the baked translate+scale matrix scales it on the canvas together with the geometry, so the stroke visually scales with iconSize

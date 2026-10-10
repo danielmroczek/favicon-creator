@@ -11,7 +11,7 @@ A simple, browser-based tool for creating custom favicons for your websites. Des
   hue, two shade steps apart. **Mouse mode** is the default: a swatch click
   sets the target by mouse button (left = Start, right = End, middle = Icon);
   click a target row to pin just that one, and click it again to release.
-- **Icon Library**: Instant search through 1000+ Lucide icons with zero loading time
+- **Icon Library**: Instant search through 1000+ Lucide icons with zero loading time, plus the **Tabler** family (6 000+ icons) in the same search grid — tiles carry an `L`/`T` badge. Tabler icons are stroke-based in a 24×24 viewBox, so the Stroke Width slider drives the real outline thickness and stroke subpaths merge exactly like Lucide. The full Tabler collection JSON is fetched once from jsDelivr (`@iconify-json/tabler`, ~400 KB gzipped) and then served entirely from memory — no per-icon requests, no rate limits.
 - **Custom SVG Support**: Upload your own SVG files to use as favicons
 - **Size & Position Controls**: Adjust the size and position of your icon elements
 - **Canonical Output**: Emits favicons that conform to the canonical favicon format
@@ -54,6 +54,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Built with **[Alpine.js](https://alpinejs.dev/)** - Lightweight reactive framework for modern UIs
 - **[Pico CSS](https://picocss.com/)** - Minimal CSS framework for clean UI
 - **[Lucide Icons](https://lucide.dev/)** - Beautiful, consistent icon library (1000+ icons)
+- **[Tabler Icons](https://tabler.io/icons)** via the full [Iconify](https://iconify.design) collection data (`@iconify-json/tabler` on jsDelivr) - second icon family, one collection JSON fetched once at startup (no per-icon requests)
 - **[Material Colors](https://github.com/carbon-native/carbon-native)** - Palette vendored at
   `docs/lib/material-colors.js` (shades 100–900 only; IIFE, no runtime fetch)
 - **[svgpath](https://github.com/fontello/svgpath)** - Transforms baked into path data (pre-bundled IIFE in `docs/svgpath.min.js`)
